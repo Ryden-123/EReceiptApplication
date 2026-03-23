@@ -1,0 +1,244 @@
+﻿<Application x:Class="EReceiptApp.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+
+        <!-- ── Theme color resources (set by ThemeManager) ── -->
+        <SolidColorBrush x:Key="AppBackground"      Color="#F9F7FF"/>
+        <SolidColorBrush x:Key="AppSurface"         Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="AppSurfaceAlt"      Color="#F4F1FF"/>
+        <SolidColorBrush x:Key="AppText"            Color="#2D2545"/>
+        <SolidColorBrush x:Key="AppTextMuted"       Color="#8B81B8"/>
+        <SolidColorBrush x:Key="AppBorder"          Color="#E8E4F8"/>
+        <SolidColorBrush x:Key="AppSidebar"         Color="#2D2545"/>
+        <SolidColorBrush x:Key="AppSidebarText"     Color="#B9B2DC"/>
+        <SolidColorBrush x:Key="AppInputBackground" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="AppCardShadow"      Color="#C8C3E6"/>
+        <SolidColorBrush x:Key="AppAccent"          Color="#7C6FCD"/>
+        <SolidColorBrush x:Key="AppAccentDark"      Color="#6B5EBC"/>
+        <SolidColorBrush x:Key="AppAccentLight"     Color="#F0ECFF"/>
+        <SolidColorBrush x:Key="AppAccentText"      Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="AppSuccess"         Color="#52A47A"/>
+        <SolidColorBrush x:Key="AppSuccessLight"    Color="#E8F5EE"/>
+        <SolidColorBrush x:Key="AppDanger"          Color="#C65050"/>
+        <SolidColorBrush x:Key="AppDangerLight"     Color="#FFF0F0"/>
+        <SolidColorBrush x:Key="AppWarning"         Color="#D29B32"/>
+        <SolidColorBrush x:Key="AppWarningLight"    Color="#FFF8E6"/>
+
+        <!-- ── Durations ── -->
+        <Duration x:Key="AnimFast">0:0:0.15</Duration>
+        <Duration x:Key="AnimNormal">0:0:0.22</Duration>
+
+        <!-- ── Field label ── -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextMuted}"/>
+            <Setter Property="Margin"     Value="0,10,0,4"/>
+        </Style>
+
+        <!-- ── Input box ── -->
+        <Style x:Key="InputBox" TargetType="TextBox">
+            <Setter Property="Padding"          Value="10,8"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="BorderBrush"      Value="{DynamicResource AppBorder}"/>
+            <Setter Property="BorderThickness"  Value="1.5"/>
+            <Setter Property="Background"       Value="{DynamicResource AppInputBackground}"/>
+            <Setter Property="Foreground"       Value="{DynamicResource AppText}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource AppAccent}"/>
+                                <Setter TargetName="border"
+                                        Property="BorderThickness"
+                                        Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Primary button ── -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background"       Value="{DynamicResource AppAccent}"/>
+            <Setter Property="Foreground"       Value="{DynamicResource AppAccentText}"/>
+            <Setter Property="Padding"          Value="18,10"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="FontWeight"       Value="SemiBold"/>
+            <Setter Property="BorderThickness"  Value="0"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="{DynamicResource AppAccentDark}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="{DynamicResource AppAccentDark}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Secondary button ── -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background"      Value="{DynamicResource AppSurface}"/>
+            <Setter Property="Foreground"      Value="{DynamicResource AppText}"/>
+            <Setter Property="Padding"         Value="18,10"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource AppBorder}"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource AppAccent}"/>
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="{DynamicResource AppAccentLight}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Danger button ── -->
+        <Style x:Key="DangerButton" TargetType="Button">
+            <Setter Property="Background"      Value="{DynamicResource AppDangerLight}"/>
+            <Setter Property="Foreground"      Value="{DynamicResource AppDanger}"/>
+            <Setter Property="Padding"         Value="18,10"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource AppDanger}"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="{DynamicResource AppDanger}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Sidebar button ── -->
+        <Style x:Key="SidebarButton" TargetType="Button">
+            <Setter Property="Background"             Value="Transparent"/>
+            <Setter Property="Foreground"             Value="{DynamicResource AppSidebarText}"/>
+            <Setter Property="BorderThickness"        Value="0"/>
+            <Setter Property="Padding"                Value="16,10"/>
+            <Setter Property="FontSize"               Value="13"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor"                 Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Margin="4,1"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#3D3460"/>
+                                <Setter Property="Foreground"
+                                        Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#4A4070"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Card style (reusable Border style) ── -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background"      Value="{DynamicResource AppSurface}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource AppBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius"    Value="14"/>
+            <Setter Property="Padding"         Value="20"/>
+        </Style>
+
+        <!-- ── Section label ── -->
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextMuted}"/>
+            <Setter Property="Margin"     Value="0,20,0,10"/>
+        </Style>
+
+    </Application.Resources>
+</Application>

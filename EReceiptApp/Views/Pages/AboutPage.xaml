@@ -1,0 +1,78 @@
+<Page x:Class="EReceiptApp.Views.Pages.AboutPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="About"
+      Background="{DynamicResource AppBackground}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40" MaxWidth="560">
+
+            <TextBlock Text="About" FontSize="24" FontWeight="Bold"
+                       Foreground="{DynamicResource AppText}" Margin="0,0,0,4"/>
+            <TextBlock Text="E-Receipt System v1.0"
+                       FontSize="13" Foreground="{DynamicResource AppTextMuted}"
+                       Margin="0,0,0,32"/>
+
+            <!-- About Card -->
+            <Border Background="{DynamicResource AppSurface}"
+                    BorderBrush="{DynamicResource AppBorder}"
+                    BorderThickness="1" CornerRadius="10"
+                    Padding="24" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="What is this app?" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppText}" Margin="0,0,0,10"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22"
+                               Foreground="{DynamicResource AppText}">
+                        The E-Receipt System is a digital receipt generator designed
+                        for organizations and clubs in Philippine colleges and universities.
+                        It allows officers and cashiers to issue official digital receipts
+                        without the need for paper, making transactions faster, more
+                        organized, and environmentally friendly.
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- Features Card -->
+            <Border Background="{DynamicResource AppSurface}"
+                    BorderBrush="{DynamicResource AppBorder}"
+                    BorderThickness="1" CornerRadius="10"
+                    Padding="24" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Key Features" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppText}" Margin="0,0,0,10"/>
+                    <TextBlock FontSize="13" LineHeight="24" TextWrapping="Wrap"
+                               Foreground="{DynamicResource AppText}">
+                        🧾  Standard receipts for sales and payments&#10;
+                        🪪  Membership receipts as proof of club membership&#10;
+                        📱  QR Code generation for easy phone scanning&#10;
+                        🖨️  Print receipts directly from the app&#10;
+                        🖼️  Export receipts as PNG images&#10;
+                        📧  Send receipts via email&#10;
+                        🌙  Light and dark mode support&#10;
+                        🎨  Custom accent color themes
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- Use Case Card -->
+            <Border Background="{DynamicResource AppSurface}"
+                    BorderBrush="{DynamicResource AppBorder}"
+                    BorderThickness="1" CornerRadius="10"
+                    Padding="24" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Who is this for?" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppText}" Margin="0,0,0,10"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22"
+                               Foreground="{DynamicResource AppText}">
+                        This app is designed for student organizations, clubs, and college
+                        departments that need to issue receipts for membership fees,
+                        event registrations, or any other payments. Members can simply
+                        scan the QR code on the receipt with their phone as proof of
+                        membership or payment — no paper needed.
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

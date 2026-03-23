@@ -1,0 +1,134 @@
+<Page x:Class="EReceiptApp.Views.Pages.VerifyReceiptPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Verify Receipt"
+      Background="{DynamicResource AppBackground}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40" MaxWidth="600">
+
+            <TextBlock Text="Verify Receipt"
+                       FontSize="24" FontWeight="Bold"
+                       Foreground="{DynamicResource AppText}"
+                       Margin="0,0,0,4"/>
+            <TextBlock Text="Confirm a receipt is authentic by entering its number or pasting its QR code data."
+                       FontSize="13" TextWrapping="Wrap"
+                       Foreground="{DynamicResource AppTextMuted}"
+                       Margin="0,0,0,32"/>
+
+            <!-- Method 1: Receipt Number -->
+            <Border Background="{DynamicResource AppSurface}"
+                    BorderBrush="{DynamicResource AppBorder}"
+                    BorderThickness="1" CornerRadius="10"
+                    Padding="24" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Search by Receipt Number"
+                               FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppText}"
+                               Margin="0,0,0,12"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0"
+                                 x:Name="TxtReceiptNumber"
+                                 Padding="10,8" FontSize="13"
+                                 BorderBrush="{DynamicResource AppBorder}"
+                                 BorderThickness="1"
+                                 Background="{DynamicResource AppSurface}"
+                                 Foreground="{DynamicResource AppText}"
+                                 MaxLength="30"/>
+
+                        <Button Grid.Column="2"
+                                Content="Search"
+                                Padding="16,8" FontSize="13"
+                                BorderThickness="0"
+                                Background="{DynamicResource AppAccent}"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                Cursor="Hand"
+                                Click="SearchByNumber_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Method 2: QR Code data -->
+            <Border Background="{DynamicResource AppSurface}"
+                    BorderBrush="{DynamicResource AppBorder}"
+                    BorderThickness="1" CornerRadius="10"
+                    Padding="24" Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="Paste QR Code Data"
+                               FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppText}"
+                               Margin="0,0,0,6"/>
+                    <TextBlock Text="Scan the QR code with your phone, copy the text, and paste it below."
+                               FontSize="12" TextWrapping="Wrap"
+                               Foreground="{DynamicResource AppTextMuted}"
+                               Margin="0,0,0,12"/>
+
+                    <TextBox x:Name="TxtQrData"
+                             Padding="10,8" FontSize="12"
+                             BorderBrush="{DynamicResource AppBorder}"
+                             BorderThickness="1"
+                             Background="{DynamicResource AppSurface}"
+                             Foreground="{DynamicResource AppText}"
+                             Height="100"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             Margin="0,0,0,12"/>
+
+                    <Button Content="Verify QR Data"
+                            Padding="16,8" FontSize="13"
+                            BorderThickness="0"
+                            Background="{DynamicResource AppAccent}"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            Cursor="Hand"
+                            HorizontalAlignment="Left"
+                            Click="VerifyQr_Click"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Result area -->
+            <Border x:Name="ResultPanel"
+                    Visibility="Collapsed"
+                    CornerRadius="10"
+                    BorderThickness="1"
+                    Padding="24">
+                <StackPanel>
+                    <TextBlock x:Name="TxtResultIcon"
+                               FontSize="32"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,12"/>
+                    <TextBlock x:Name="TxtResultTitle"
+                               FontSize="16" FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,8"/>
+                    <TextBlock x:Name="TxtResultDetail"
+                               FontSize="13" TextWrapping="Wrap"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               Margin="0,0,0,16"/>
+                    <Button x:Name="BtnViewReceipt"
+                            Content="View Full Receipt"
+                            Padding="16,8" FontSize="13"
+                            BorderThickness="0"
+                            Background="{DynamicResource AppAccent}"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            Cursor="Hand"
+                            HorizontalAlignment="Center"
+                            Visibility="Collapsed"
+                            Click="ViewFound_Click"/>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
