@@ -37,13 +37,12 @@ namespace EReceiptApp.Services
             File.WriteAllBytes(filePath, qrBytes);
         }
 
+        // Replace with
         private string BuildQRPayload(Receipt receipt)
         {
             return $"RECEIPT#{receipt.ReceiptNumber}\n" +
-                   $"Type:{receipt.Type}\n" +
                    $"Issued To:{receipt.IssuedTo}\n" +
                    $"ID:{receipt.IdNumber}\n" +
-                   $"Club:{receipt.ClubName}\n" +
                    $"Date:{receipt.DateIssued:yyyy-MM-dd}\n" +
                    $"Total:PHP {receipt.TotalAmount:F2}\n" +
                    $"Org:{receipt.OrganizationName}";

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using EReceiptApp.Models;
 using EReceiptApp.Services;
@@ -10,19 +11,19 @@ namespace EReceiptApp.Views.Pages
 {
     public partial class ReceiptBuilderPage : Page
     {
-        
-        private readonly ReceiptType _receiptType;
         private readonly Receipt? _editingReceipt;
         private readonly bool _isEditMode;
         private readonly bool _isDuplicateMode;
-        private readonly List<(TextBox Desc, TextBox Qty, TextBox Price)>
-            _itemRows = new List<(TextBox, TextBox, TextBox)>();
+        private readonly List<(TextBox Desc, TextBox Qty,
+            TextBox Price)> _itemRows =
+            new List<(TextBox, TextBox, TextBox)>();
+
+        private readonly DatabaseService _db = new DatabaseService();
 
         // ── New receipt ───────────────────────────────────────────────
-        public ReceiptBuilderPage(ReceiptType receiptType)
+        public ReceiptBuilderPage()
         {
             InitializeComponent();
-            _receiptType = receiptType;
             _isEditMode = false;
             _isDuplicateMode = false;
             SetupPage();
@@ -34,24 +35,22 @@ namespace EReceiptApp.Views.Pages
         public ReceiptBuilderPage(Receipt receipt)
         {
             InitializeComponent();
-            _receiptType = receipt.Type;
             _editingReceipt = receipt;
             _isEditMode = true;
             _isDuplicateMode = false;
             SetupPage();
-            PopulateFromReceipt(receipt, keepReceiptNumber: true);
+            PopulateFromReceipt(receipt, keepNumber: true);
         }
 
-        // ── Duplicate existing receipt ────────────────────────────────
+        // ── Duplicate receipt ─────────────────────────────────────────
         public ReceiptBuilderPage(Receipt receipt, bool isDuplicate)
         {
             InitializeComponent();
-            _receiptType = receipt.Type;
             _editingReceipt = null;
             _isEditMode = false;
             _isDuplicateMode = true;
             SetupPage();
-            PopulateFromReceipt(receipt, keepReceiptNumber: false);
+            PopulateFromReceipt(receipt, keepNumber: false);
         }
 
         // ── Page setup ────────────────────────────────────────────────
@@ -59,95 +58,55 @@ namespace EReceiptApp.Views.Pages
         {
             DpDateIssued.SelectedDate = DateTime.Today;
 
-            
-
             if (_isEditMode && _editingReceipt != null)
             {
                 PageTitle.Text = "Edit Receipt";
-                PageSubtitle.Text = "Update the details of this receipt.";
+                PageSubtitle.Text =
+                    "Update the details of this receipt.";
+                // Show existing number — don't generate new one
                 TxtReceiptNumber.Text = _editingReceipt.ReceiptNumber;
             }
             else if (_isDuplicateMode)
             {
                 PageTitle.Text = "Duplicate Receipt";
                 PageSubtitle.Text =
-                    "A new receipt pre-filled from the original. " +
-                    "A new receipt number has been assigned.";
-                TxtReceiptNumber.Text = GenerateReceiptNumber();
-            }
-            else if (_receiptType == ReceiptType.Standard)
-            {
-                PageTitle.Text = "New Standard Receipt";
-                PageSubtitle.Text =
-                    "Fill in the details to create a standard sales receipt.";
-                TxtReceiptNumber.Text = GenerateReceiptNumber();
+                    "A new receipt pre-filled from the original.";
+                // Number will be generated on submit
+                TxtReceiptNumber.Text = "(generated on submit)";
             }
             else
             {
-                PageTitle.Text = "New Membership Receipt";
+                PageTitle.Text = "New Receipt";
                 PageSubtitle.Text =
-                    "Issue a digital membership proof receipt.";
-                TxtReceiptNumber.Text = GenerateReceiptNumber();
-            }
-
-            if (_receiptType == ReceiptType.Standard)
-            {
-                TypeBadge.Background = new SolidColorBrush(
-                    Color.FromRgb(232, 245, 233));
-                TypeBadgeText.Text = "Standard Receipt";
-                TypeBadgeText.Foreground = new SolidColorBrush(
-                    Color.FromRgb(46, 125, 50));
-                MembershipFields.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                TypeBadge.Background = new SolidColorBrush(
-                    Color.FromRgb(237, 231, 246));
-                TypeBadgeText.Text = "Membership Receipt";
-                TypeBadgeText.Foreground = new SolidColorBrush(
-                    Color.FromRgb(81, 45, 168));
-                MembershipFields.Visibility = Visibility.Visible;
+                    "Fill in the details below. " +
+                    "Only ✱ marked fields are required.";
+                // Number will be generated on submit
+                TxtReceiptNumber.Text = "(generated on submit)";
             }
         }
 
-        
-
-        // ── Auto-fill from last used fields ───────────────────────────
+        // ── Auto-fill from last used ──────────────────────────────────
         private void AutoFillLastUsedFields()
         {
-            var settings = SettingsService.Load();
-
-            if (!string.IsNullOrWhiteSpace(settings.LastOrganization))
-                TxtOrganization.Text = settings.LastOrganization;
-
-            if (!string.IsNullOrWhiteSpace(settings.LastCashier))
-                TxtCashier.Text = settings.LastCashier;
-
-            if (_receiptType == ReceiptType.Membership)
-            {
-                if (!string.IsNullOrWhiteSpace(settings.LastClubName))
-                    TxtClubName.Text = settings.LastClubName;
-
-                if (!string.IsNullOrWhiteSpace(settings.LastAcademicYear))
-                    TxtAcademicYear.Text = settings.LastAcademicYear;
-            }
+            var s = SettingsService.Load();
+            if (!string.IsNullOrWhiteSpace(s.LastOrganization))
+                TxtOrganization.Text = s.LastOrganization;
+            if (!string.IsNullOrWhiteSpace(s.LastCashier))
+                TxtCashier.Text = s.LastCashier;
         }
 
-        // ── Sequential receipt number ─────────────────────────────────
+        // ── Generate receipt number (called on submit only) ───────────
         private string GenerateReceiptNumber()
         {
-            string prefix = _receiptType == ReceiptType.Standard
-                ? "STD" : "MEM";
-            int counter = SettingsService.GetNextReceiptNumber(
-                _receiptType == ReceiptType.Membership);
-            return $"{prefix}-{DateTime.Now:yyyy}-{counter:D4}";
+            int counter = SettingsService.GetNextReceiptNumber(false);
+            return $"REC-{DateTime.Now:yyyy}-{counter:D4}";
         }
 
         // ── Pre-fill from existing receipt ────────────────────────────
         private void PopulateFromReceipt(
-            Receipt receipt, bool keepReceiptNumber)
+            Receipt receipt, bool keepNumber)
         {
-            if (keepReceiptNumber)
+            if (keepNumber)
                 TxtReceiptNumber.Text = receipt.ReceiptNumber;
 
             TxtIssuedTo.Text = receipt.IssuedTo;
@@ -155,31 +114,14 @@ namespace EReceiptApp.Views.Pages
             TxtOrganization.Text = receipt.OrganizationName;
             TxtNotes.Text = receipt.Notes;
             TxtIdNumber.Text = receipt.IdNumber;
-            DpDateIssued.SelectedDate = keepReceiptNumber
-                ? receipt.DateIssued
-                : DateTime.Today;
-
-            if (receipt.Type == ReceiptType.Membership)
-            {
-                TxtClubName.Text = receipt.ClubName;
-                TxtAcademicYear.Text = receipt.OrganizationName;
-
-                foreach (ComboBoxItem item in CmbMembershipType.Items)
-                {
-                    if (item.Content?.ToString() == receipt.ClubName)
-                    {
-                        CmbMembershipType.SelectedItem = item;
-                        break;
-                    }
-                }
-            }
+            DpDateIssued.SelectedDate = keepNumber
+                ? receipt.DateIssued : DateTime.Today;
 
             ItemsPanel.Children.Clear();
             _itemRows.Clear();
 
             foreach (var item in receipt.Items)
-                AddItemRow(
-                    item.Description,
+                AddItemRow(item.Description,
                     item.Quantity.ToString(),
                     item.UnitPrice.ToString("F2"));
 
@@ -192,17 +134,18 @@ namespace EReceiptApp.Views.Pages
             string qty = "1",
             string price = "0.00")
         {
-            var grid = new Grid { Margin = new Thickness(0, 0, 0, 6) };
+            var grid = new Grid
+            { Margin = new Thickness(0, 0, 0, 6) };
             grid.ColumnDefinitions.Add(new ColumnDefinition
             { Width = new GridLength(1, GridUnitType.Star) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
-            { Width = new GridLength(60) });
+            { Width = new GridLength(56) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
-            { Width = new GridLength(80) });
+            { Width = new GridLength(76) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
-            { Width = new GridLength(80) });
+            { Width = new GridLength(76) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
-            { Width = new GridLength(36) });
+            { Width = new GridLength(30) });
 
             var descBox = MakeInputBox(desc);
             var qtyBox = MakeInputBox(qty, TextAlignment.Center);
@@ -213,20 +156,21 @@ namespace EReceiptApp.Views.Pages
             var removeBtn = new Button
             {
                 Content = "✕",
-                Padding = new Thickness(6, 4, 6, 4),
-                FontSize = 12,
+                Padding = new Thickness(4),
+                FontSize = 11,
                 Background = new SolidColorBrush(
-                    Color.FromRgb(231, 76, 60)),
+                    Color.FromRgb(198, 80, 80)),
                 Foreground = new SolidColorBrush(Colors.White),
                 BorderThickness = new Thickness(0),
                 Cursor = System.Windows.Input.Cursors.Hand
             };
 
-            qtyBox.PreviewTextInput += NumericOnly_PreviewTextInput;
-            priceBox.PreviewTextInput += DecimalOnly_PreviewTextInput;
+            qtyBox.PreviewTextInput += NumericOnly_Input;
+            priceBox.PreviewTextInput += DecimalOnly_Input;
 
             descBox.LostFocus += (s, e) =>
-                descBox.Text = InputSanitizer.SanitizeText(descBox.Text);
+                descBox.Text =
+                    InputSanitizer.SanitizeText(descBox.Text);
 
             qtyBox.TextChanged += (s, e) =>
                 UpdateRowTotal(qtyBox, priceBox, totalBox);
@@ -259,39 +203,42 @@ namespace EReceiptApp.Views.Pages
         }
 
         private TextBox MakeInputBox(
-            string defaultText = "",
+            string text = "",
             TextAlignment align = TextAlignment.Left,
             bool readOnly = false)
         {
             return new TextBox
             {
-                Text = defaultText,
+                Text = text,
                 Padding = new Thickness(6, 5, 6, 5),
-                FontSize = 13,
-                BorderBrush = new SolidColorBrush(Colors.LightGray),
+                FontSize = 12,
+                BorderBrush = new SolidColorBrush(
+                    Color.FromRgb(232, 228, 248)),
+                BorderThickness = new Thickness(1),
                 Margin = new Thickness(0, 0, 4, 0),
                 TextAlignment = align,
                 IsReadOnly = readOnly,
                 Background = readOnly
-                    ? new SolidColorBrush(Color.FromRgb(245, 245, 245))
+                    ? (SolidColorBrush)Application.Current
+                        .Resources["AppSurfaceAlt"]
                     : new SolidColorBrush(Colors.White),
                 MaxLength = 200
             };
         }
 
-        private void NumericOnly_PreviewTextInput(object sender,
+        private void NumericOnly_Input(object sender,
             System.Windows.Input.TextCompositionEventArgs e)
         {
-            e.Handled = !System.Text.RegularExpressions.Regex
-                .IsMatch(e.Text, @"^\d+$");
+            e.Handled = !System.Text.RegularExpressions
+                .Regex.IsMatch(e.Text, @"^\d+$");
         }
 
-        private void DecimalOnly_PreviewTextInput(object sender,
+        private void DecimalOnly_Input(object sender,
             System.Windows.Input.TextCompositionEventArgs e)
         {
             var box = sender as TextBox;
-            bool isDigit = System.Text.RegularExpressions.Regex
-                .IsMatch(e.Text, @"^\d+$");
+            bool isDigit = System.Text.RegularExpressions
+                .Regex.IsMatch(e.Text, @"^\d+$");
             bool isDot = e.Text == "." &&
                            box != null &&
                            !box.Text.Contains(".");
@@ -299,28 +246,69 @@ namespace EReceiptApp.Views.Pages
         }
 
         private void UpdateRowTotal(
-            TextBox qtyBox, TextBox priceBox, TextBox totalBox)
+            TextBox qty, TextBox price, TextBox total)
         {
-            bool qtyOk = int.TryParse(qtyBox.Text, out int qty);
-            bool priceOk = decimal.TryParse(priceBox.Text, out decimal price);
-            totalBox.Text = (qtyOk && priceOk)
-                ? (qty * price).ToString("F2") : "0.00";
+            bool qOk = int.TryParse(qty.Text, out int q);
+            bool pOk = decimal.TryParse(price.Text, out decimal p);
+            total.Text = (qOk && pOk)
+                ? (q * p).ToString("F2") : "0.00";
             RecalculateTotal();
         }
 
         private void RecalculateTotal()
         {
-            decimal subtotal = 0;
+            decimal sub = 0;
             foreach (var row in _itemRows)
             {
-                if (int.TryParse(row.Qty.Text, out int qty) &&
-                    decimal.TryParse(row.Price.Text, out decimal price))
-                    subtotal += qty * price;
+                if (int.TryParse(row.Qty.Text, out int q) &&
+                    decimal.TryParse(row.Price.Text, out decimal p))
+                    sub += q * p;
             }
-            TxtSubtotal.Text = $"PHP {subtotal:F2}";
-            TxtTotal.Text = $"PHP {subtotal:F2}";
+            TxtSubtotal.Text = $"₱{sub:F2}";
+            TxtTotal.Text = $"₱{sub:F2}";
         }
 
+        // ── Preset items picker ───────────────────────────────────────
+        private void PickPreset_Click(object sender, RoutedEventArgs e)
+        {
+            var presets = _db.GetPresetItems();
+            if (presets.Count == 0)
+            {
+                MessageBox.Show(
+                    "No preset items found in the database.",
+                    "No Presets",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            // Build a popup menu
+            var menu = new ContextMenu();
+
+            foreach (var (name, price) in presets)
+            {
+                var item = new MenuItem
+                {
+                    Header = $"{name}  —  ₱{price:F2}"
+                };
+                string capturedName = name;
+                double capturedPrice = price;
+
+                item.Click += (s, ev) =>
+                {
+                    AddItemRow(capturedName, "1",
+                        capturedPrice.ToString("F2"));
+                };
+
+                menu.Items.Add(item);
+            }
+
+            menu.PlacementTarget = sender as UIElement;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = true;
+        }
+
+        // ── Add Item button ───────────────────────────────────────────
         private void AddItem_Click(object sender, RoutedEventArgs e)
         {
             if (_itemRows.Count >= 20)
@@ -331,109 +319,104 @@ namespace EReceiptApp.Views.Pages
             AddItemRow();
         }
 
+        // ── Clear form ────────────────────────────────────────────────
         private void ClearForm_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show(
-                "Are you sure you want to clear all fields?",
+            var r = MessageBox.Show(
+                "Clear all fields?",
                 "Clear Form",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
-            if (result == MessageBoxResult.Yes)
-            {
-                TxtIssuedTo.Text = "";
-                TxtCashier.Text = "";
-                TxtOrganization.Text = "";
-                TxtNotes.Text = "";
-                TxtIdNumber.Text = "";
-                TxtReceiptNumber.Text = _isEditMode && _editingReceipt != null
-                    ? _editingReceipt.ReceiptNumber
-                    : GenerateReceiptNumber();
-                DpDateIssued.SelectedDate = DateTime.Today;
+            if (r != MessageBoxResult.Yes) return;
 
-                if (_receiptType == ReceiptType.Membership)
-                {
-                    TxtClubName.Text = "";
-                    TxtStudentId.Text = "";
-                    TxtAcademicYear.Text = "";
-                    CmbMembershipType.SelectedIndex = -1;
-                }
+            TxtIssuedTo.Text = "";
+            TxtCashier.Text = "";
+            TxtOrganization.Text = "";
+            TxtNotes.Text = "";
+            TxtIdNumber.Text = "";
+            TxtReceiptNumber.Text = _isEditMode && _editingReceipt != null
+                ? _editingReceipt.ReceiptNumber
+                : "(generated on submit)";
+            DpDateIssued.SelectedDate = DateTime.Today;
 
-                ItemsPanel.Children.Clear();
-                _itemRows.Clear();
-                AddItemRow();
-                RecalculateTotal();
-                HideValidation();
-            }
+            ItemsPanel.Children.Clear();
+            _itemRows.Clear();
+            AddItemRow();
+            RecalculateTotal();
+            HideValidation();
         }
 
-        private void PreviewReceipt_Click(object sender, RoutedEventArgs e)
+        // ── Preview / Submit ──────────────────────────────────────────
+        private void PreviewReceipt_Click(
+            object sender, RoutedEventArgs e)
         {
-            if (!ValidateAndSanitizeForm()) return;
+            if (!ValidateForm()) return;
 
+            // Generate receipt number HERE — not on page load
+            if (!_isEditMode)
+                TxtReceiptNumber.Text = GenerateReceiptNumber();
 
+            // Save last used fields
             SettingsService.SaveLastUsedFields(
-                TxtOrganization.Text.Trim(),
-                _receiptType == ReceiptType.Membership
-                    ? TxtClubName.Text.Trim() : "",
-                TxtCashier.Text.Trim(),
-                _receiptType == ReceiptType.Membership
-                    ? TxtAcademicYear.Text.Trim() : "");
+                TxtOrganization.Text.Trim(), "",
+                TxtCashier.Text.Trim(), "");
 
-            var receipt = BuildReceiptFromForm();
+            var receipt = BuildReceipt();
             NavigationService?.Navigate(
                 new ReceiptPreviewPage(receipt,
                     fromHistory: false,
                     isEdit: _isEditMode));
         }
 
-        private bool ValidateAndSanitizeForm()
+        // ── Validation ────────────────────────────────────────────────
+        private bool ValidateForm()
         {
             HideValidation();
             var errors = new List<string>();
 
-            TxtIssuedTo.Text = InputSanitizer.SanitizeName(TxtIssuedTo.Text);
-            TxtCashier.Text = InputSanitizer.SanitizeName(TxtCashier.Text);
-            TxtOrganization.Text = InputSanitizer.SanitizeText(TxtOrganization.Text);
-            TxtNotes.Text = InputSanitizer.SanitizeText(TxtNotes.Text);
-            TxtIdNumber.Text = InputSanitizer.SanitizeIdNumber(TxtIdNumber.Text);
+            // Sanitize
+            TxtIssuedTo.Text =
+                InputSanitizer.SanitizeName(TxtIssuedTo.Text);
+            TxtCashier.Text =
+                InputSanitizer.SanitizeName(TxtCashier.Text);
+            TxtOrganization.Text =
+                InputSanitizer.SanitizeText(TxtOrganization.Text);
+            TxtNotes.Text =
+                InputSanitizer.SanitizeText(TxtNotes.Text);
+            TxtIdNumber.Text =
+                InputSanitizer.SanitizeIdNumber(TxtIdNumber.Text);
 
-            if (_receiptType == ReceiptType.Membership)
-            {
-                TxtClubName.Text =
-                    InputSanitizer.SanitizeText(TxtClubName.Text);
-                TxtStudentId.Text =
-                    InputSanitizer.SanitizeIdNumber(TxtStudentId.Text);
-                TxtAcademicYear.Text =
-                    InputSanitizer.SanitizeText(TxtAcademicYear.Text);
-            }
-
+            // Required fields
             var nameCheck = InputSanitizer.ValidateName(
                 TxtIssuedTo.Text, "Issued To");
-            if (!nameCheck.IsValid) errors.Add($"• {nameCheck.Error}");
+            if (!nameCheck.IsValid)
+                errors.Add($"• {nameCheck.Error}");
 
             var cashierCheck = InputSanitizer.ValidateName(
                 TxtCashier.Text, "Cashier / Issued By");
-            if (!cashierCheck.IsValid) errors.Add($"• {cashierCheck.Error}");
+            if (!cashierCheck.IsValid)
+                errors.Add($"• {cashierCheck.Error}");
 
-            if (_receiptType == ReceiptType.Membership &&
-                string.IsNullOrWhiteSpace(TxtClubName.Text))
-                errors.Add("• Club / Organization Name is required.");
+            // Optional field length checks
+            if (TxtOrganization.Text.Length > 150)
+                errors.Add("• Organization name is too long.");
+            if (TxtNotes.Text.Length > 300)
+                errors.Add("• Notes are too long (max 300 chars).");
 
-            var idCheck = InputSanitizer.ValidateIdNumber(TxtIdNumber.Text);
-            if (!idCheck.IsValid) errors.Add($"• {idCheck.Error}");
+            var idCheck =
+                InputSanitizer.ValidateIdNumber(TxtIdNumber.Text);
+            if (!idCheck.IsValid)
+                errors.Add($"• {idCheck.Error}");
 
-            var notesCheck = InputSanitizer.ValidateText(
-                TxtNotes.Text, "Notes", false, 300);
-            if (!notesCheck.IsValid) errors.Add($"• {notesCheck.Error}");
-
+            // Items
             if (_itemRows.Count == 0)
             {
                 errors.Add("• Please add at least one item.");
             }
             else
             {
-                int rowNum = 1;
+                int i = 1;
                 foreach (var row in _itemRows)
                 {
                     row.Desc.Text =
@@ -441,36 +424,28 @@ namespace EReceiptApp.Views.Pages
 
                     if (string.IsNullOrWhiteSpace(row.Desc.Text))
                         errors.Add(
-                            $"• Item {rowNum}: Description is required.");
+                            $"• Item {i}: description is required.");
 
-                    var qtyCheck =
+                    var qCheck =
                         InputSanitizer.ValidateQuantity(row.Qty.Text);
-                    if (!qtyCheck.IsValid)
-                        errors.Add($"• Item {rowNum}: {qtyCheck.Error}");
+                    if (!qCheck.IsValid)
+                        errors.Add($"• Item {i}: {qCheck.Error}");
 
-                    var priceCheck =
+                    var pCheck =
                         InputSanitizer.ValidateAmount(row.Price.Text);
-                    if (!priceCheck.IsValid)
-                        errors.Add($"• Item {rowNum}: {priceCheck.Error}");
-
-                    rowNum++;
+                    if (!pCheck.IsValid)
+                        errors.Add($"• Item {i}: {pCheck.Error}");
+                    i++;
                 }
             }
 
-            // Check for duplicate receipt number
-            var db = new DatabaseService();
-            int excludeId = _isEditMode && _editingReceipt != null
-                ? _editingReceipt.Id : 0;
-
-            if (db.ReceiptNumberExists(
-                TxtReceiptNumber.Text.Trim(), excludeId))
+            // Duplicate number check (edit mode only)
+            if (_isEditMode && _editingReceipt != null)
             {
-                errors.Add(
-                    "• Receipt number already exists. " +
-                    "A new one has been generated.");
-
-                // Auto-generate a new unique number
-                TxtReceiptNumber.Text = GenerateReceiptNumber();
+                if (_db.ReceiptNumberExists(
+                    TxtReceiptNumber.Text.Trim(),
+                    _editingReceipt.Id))
+                    errors.Add("• Receipt number already exists.");
             }
 
             if (errors.Count > 0)
@@ -482,32 +457,33 @@ namespace EReceiptApp.Views.Pages
             return true;
         }
 
-        private void ShowValidation(string message)
+        private void ShowValidation(string msg)
         {
-            TxtValidation.Text = message;
-            TxtValidation.Visibility = Visibility.Visible;
+            TxtValidation.Text = msg;
+            ValidationPanel.Visibility = Visibility.Visible;
         }
 
         private void HideValidation()
         {
-            TxtValidation.Visibility = Visibility.Collapsed;
+            ValidationPanel.Visibility = Visibility.Collapsed;
         }
 
-        private Receipt BuildReceiptFromForm()
+        // ── Build Receipt model ───────────────────────────────────────
+        private Receipt BuildReceipt()
         {
             var items = new List<ReceiptItem>();
             decimal total = 0;
 
             foreach (var row in _itemRows)
             {
-                int.TryParse(row.Qty.Text, out int qty);
-                decimal.TryParse(row.Price.Text, out decimal price);
+                int.TryParse(row.Qty.Text, out int q);
+                decimal.TryParse(row.Price.Text, out decimal p);
 
                 var item = new ReceiptItem
                 {
                     Description = row.Desc.Text,
-                    Quantity = qty,
-                    UnitPrice = price
+                    Quantity = q,
+                    UnitPrice = p
                 };
                 items.Add(item);
                 total += item.Total;
@@ -516,15 +492,13 @@ namespace EReceiptApp.Views.Pages
             return new Receipt
             {
                 Id = _isEditMode && _editingReceipt != null
-                                    ? _editingReceipt.Id : 0,
+                    ? _editingReceipt.Id : 0,
                 ReceiptNumber = TxtReceiptNumber.Text,
-                Type = _receiptType,
                 IssuedTo = TxtIssuedTo.Text.Trim(),
                 IdNumber = TxtIdNumber.Text.Trim(),
                 OrganizationName = TxtOrganization.Text.Trim(),
-                ClubName = _receiptType == ReceiptType.Membership
-                                    ? TxtClubName.Text.Trim() : "",
-                DateIssued = DpDateIssued.SelectedDate ?? DateTime.Today,
+                DateIssued = DpDateIssued.SelectedDate
+                                   ?? DateTime.Today,
                 Items = items,
                 TotalAmount = total,
                 Notes = TxtNotes.Text.Trim(),
@@ -532,5 +506,4 @@ namespace EReceiptApp.Views.Pages
             };
         }
     }
-
 }

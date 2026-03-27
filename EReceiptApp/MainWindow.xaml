@@ -75,19 +75,11 @@
                                    Foreground="#6B6490"
                                    Margin="16,6,0,4"/>
 
-                        <Button Content="🧾  New Standard"
-                                Style="{StaticResource SidebarButton}"
-                                Click="NewStandardReceipt_Click">
+                        <Button Content="🧾  New Receipt"
+                            Style="{StaticResource SidebarButton}"
+                            Click="NewReceipt_Click">
                             <Button.ToolTip>
-                                <ToolTip Content="New Standard Receipt (Ctrl+N)"/>
-                            </Button.ToolTip>
-                        </Button>
-
-                        <Button Content="🪪  New Membership"
-                                Style="{StaticResource SidebarButton}"
-                                Click="NewMembershipReceipt_Click">
-                            <Button.ToolTip>
-                                <ToolTip Content="New Membership Receipt (Ctrl+M)"/>
+                                <ToolTip Content="New Receipt (Ctrl+N)"/>
                             </Button.ToolTip>
                         </Button>
 

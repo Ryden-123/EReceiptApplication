@@ -14,21 +14,20 @@ namespace EReceiptApp.Services
         {
             var sb = new StringBuilder();
 
-            // Header row
+            // Replace header with
             sb.AppendLine(
-                "Receipt Number,Type,Issued To,ID Number," +
-                "Organization,Club,Date,Total,Cashier,Notes");
+                "Receipt Number,Issued To,ID Number," +
+                "Organization,Date,Total,Cashier,Notes");
 
             // Data rows
             foreach (var r in receipts)
             {
+                // Replace data row with
                 sb.AppendLine(
                     $"{Escape(r.ReceiptNumber)}," +
-                    $"{r.Type}," +
                     $"{Escape(r.IssuedTo)}," +
                     $"{Escape(r.IdNumber)}," +
                     $"{Escape(r.OrganizationName)}," +
-                    $"{Escape(r.ClubName)}," +
                     $"{r.DateIssued:yyyy-MM-dd}," +
                     $"{r.TotalAmount:F2}," +
                     $"{Escape(r.CashierName)}," +
@@ -48,10 +47,11 @@ namespace EReceiptApp.Services
             var ws = workbook.Worksheets.Add("Receipts");
 
             // Header styling
+            // Replace with
             var headers = new[]
             {
-                "Receipt Number", "Type", "Issued To",
-                "ID Number", "Organization", "Club",
+                "Receipt Number", "Issued To",
+                "ID Number", "Organization",
                 "Date", "Total (₱)", "Cashier", "Notes"
             };
 
@@ -74,17 +74,16 @@ namespace EReceiptApp.Services
                 var r = receipts[i];
                 int row = i + 2;
 
+                // Replace with
                 ws.Cell(row, 1).Value = r.ReceiptNumber;
-                ws.Cell(row, 2).Value = r.Type.ToString();
-                ws.Cell(row, 3).Value = r.IssuedTo;
-                ws.Cell(row, 4).Value = r.IdNumber;
-                ws.Cell(row, 5).Value = r.OrganizationName;
-                ws.Cell(row, 6).Value = r.ClubName;
-                ws.Cell(row, 7).Value = r.DateIssued.ToString("yyyy-MM-dd");
-                ws.Cell(row, 8).Value = (double)r.TotalAmount;
-                ws.Cell(row, 8).Style.NumberFormat.Format = "#,##0.00";
-                ws.Cell(row, 9).Value = r.CashierName;
-                ws.Cell(row, 10).Value = r.Notes;
+                ws.Cell(row, 2).Value = r.IssuedTo;
+                ws.Cell(row, 3).Value = r.IdNumber;
+                ws.Cell(row, 4).Value = r.OrganizationName;
+                ws.Cell(row, 5).Value = r.DateIssued.ToString("yyyy-MM-dd");
+                ws.Cell(row, 6).Value = (double)r.TotalAmount;
+                ws.Cell(row, 6).Style.NumberFormat.Format = "#,##0.00";
+                ws.Cell(row, 7).Value = r.CashierName;
+                ws.Cell(row, 8).Value = r.Notes;
 
                 // Alternate row color
                 if (i % 2 == 0)
@@ -99,12 +98,13 @@ namespace EReceiptApp.Services
 
             // Add totals row
             int totalRow = receipts.Count + 2;
-            ws.Cell(totalRow, 7).Value = "TOTAL";
-            ws.Cell(totalRow, 7).Style.Font.Bold = true;
-            ws.Cell(totalRow, 8).FormulaA1 =
-                $"=SUM(H2:H{receipts.Count + 1})";
-            ws.Cell(totalRow, 8).Style.Font.Bold = true;
-            ws.Cell(totalRow, 8).Style.NumberFormat.Format = "#,##0.00";
+            // Replace with
+            ws.Cell(totalRow, 5).Value = "TOTAL";
+            ws.Cell(totalRow, 5).Style.Font.Bold = true;
+            ws.Cell(totalRow, 6).FormulaA1 =
+                $"=SUM(F2:F{receipts.Count + 1})";
+            ws.Cell(totalRow, 6).Style.Font.Bold = true;
+            ws.Cell(totalRow, 6).Style.NumberFormat.Format = "#,##0.00";
 
             // ── Sheet 2: Summary ──────────────────────────────────────
             var summary = workbook.Worksheets.Add("Summary");
@@ -122,10 +122,9 @@ namespace EReceiptApp.Services
             summary.Cell(4, 1).Style.Font.Bold = true;
             summary.Cell(4, 2).Style.Font.Bold = true;
 
-            int std = receipts.FindAll(
-                r => r.Type == ReceiptType.Standard).Count;
-            int mem = receipts.FindAll(
-                r => r.Type == ReceiptType.Membership).Count;
+            // Replace with — no types anymore, just show total
+            int std = receipts.Count;
+            int mem = 0;
             decimal total = 0;
             receipts.ForEach(r => total += r.TotalAmount);
 

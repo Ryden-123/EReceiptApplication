@@ -15,7 +15,9 @@ namespace EReceiptApp.Views.Pages
         private readonly DatabaseService _db = new DatabaseService();
         private List<Receipt> _allReceipts = new List<Receipt>();
         private List<Receipt> _filteredReceipts = new List<Receipt>();
-        private string _currentFilter = "All";
+        private readonly List<(CheckBox Chk, Receipt Receipt, Border Row)>
+    _selectableRows =
+    new List<(CheckBox, Receipt, Border)>();
 
         public ReceiptsListPage()
         {
@@ -57,10 +59,8 @@ namespace EReceiptApp.Views.Pages
         private void UpdateStats()
         {
             StatTotal.Text = _allReceipts.Count.ToString();
-            StatStandard.Text = _allReceipts
-                .Count(r => r.Type == ReceiptType.Standard).ToString();
-            StatMembership.Text = _allReceipts
-                .Count(r => r.Type == ReceiptType.Membership).ToString();
+            StatStandard.Text = _allReceipts.Count.ToString();
+            StatMembership.Text = "—";
             StatAmount.Text =
                 $"₱{_allReceipts.Sum(r => r.TotalAmount):F2}";
         }
@@ -73,18 +73,14 @@ namespace EReceiptApp.Views.Pages
             _filteredReceipts = _allReceipts.Where(r =>
             {
                 // Type filter
-                bool typeMatch = _currentFilter == "All"
-                    || (_currentFilter == "Standard"
-                        && r.Type == ReceiptType.Standard)
-                    || (_currentFilter == "Membership"
-                        && r.Type == ReceiptType.Membership);
+                bool typeMatch = true;
 
                 // Search filter
                 bool searchMatch = string.IsNullOrWhiteSpace(query)
                     || r.IssuedTo.ToLower().Contains(query)
                     || r.ReceiptNumber.ToLower().Contains(query)
                     || r.IdNumber.ToLower().Contains(query)
-                    || r.ClubName.ToLower().Contains(query);
+                    || r.OrganizationName.ToLower().Contains(query);
 
                 return typeMatch && searchMatch;
             }).ToList();
@@ -96,20 +92,18 @@ namespace EReceiptApp.Views.Pages
         private void RenderRows()
         {
             ReceiptsPanel.Children.Clear();
+            _selectableRows.Clear();          // ← add this
+            ChkSelectAll.IsChecked = false;   // ← and this
+            BulkActionBar.Visibility = Visibility.Collapsed;
 
             if (_filteredReceipts.Count == 0)
             {
                 TxtEmpty.Visibility = Visibility.Visible;
                 return;
             }
-
             TxtEmpty.Visibility = Visibility.Collapsed;
-
-            foreach (var receipt in _filteredReceipts)
-            {
-                var row = BuildRow(receipt);
-                ReceiptsPanel.Children.Add(row);
-            }
+            foreach (var r in _filteredReceipts)
+                ReceiptsPanel.Children.Add(BuildRow(r));
         }
 
         // ── Build a single row ────────────────────────────────────────
@@ -118,22 +112,30 @@ namespace EReceiptApp.Views.Pages
             var border = new Border
             {
                 BorderBrush = new SolidColorBrush(
-                    Color.FromRgb(235, 235, 240)),
+                    Color.FromRgb(232, 228, 248)),
                 BorderThickness = new Thickness(0, 0, 0, 1),
-                Cursor = Cursors.Hand
+                Cursor = System.Windows.Input.Cursors.Hand
             };
 
             border.MouseEnter += (s, e) =>
-                border.Background = (SolidColorBrush)
-                    Application.Current.Resources["AppSurfaceAlt"];
+                border.Background = (SolidColorBrush)Application
+                    .Current.Resources["AppSurfaceAlt"];
             border.MouseLeave += (s, e) =>
                 border.Background = null;
 
+            // Click on row opens receipt (but not on buttons/checkbox)
+            border.MouseLeftButtonUp += (s, e) =>
+            {
+                if (e.OriginalSource is CheckBox ||
+                    e.OriginalSource is Button) return;
+                ViewReceipt(receipt);
+            };
+
             var grid = new Grid { Margin = new Thickness(0, 2, 0, 2) };
             grid.ColumnDefinitions.Add(new ColumnDefinition
-            { Width = new GridLength(155) });
+            { Width = new GridLength(36) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
-            { Width = new GridLength(80) });
+            { Width = new GridLength(165) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
             { Width = new GridLength(1, GridUnitType.Star) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
@@ -143,51 +145,27 @@ namespace EReceiptApp.Views.Pages
             grid.ColumnDefinitions.Add(new ColumnDefinition
             { Width = new GridLength(150) });
 
+            // Checkbox
+            var chk = new CheckBox
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0)
+            };
+            chk.Checked += (s, e) => UpdateBulkBar();
+            chk.Unchecked += (s, e) => UpdateBulkBar();
+            Grid.SetColumn(chk, 0);
+            grid.Children.Add(chk);
+
+            // Track this row for bulk selection
+            _selectableRows.Add((chk, receipt, border));
+
             // Receipt number
             grid.Children.Add(MakeCell(
-                receipt.ReceiptNumber, 0,
-                margin: new Thickness(16, 10, 4, 10),
-                bold: true));
+                receipt.ReceiptNumber, 1,
+                new Thickness(8, 10, 4, 10), bold: true));
 
-            // Type badge
-            var badge = new Border
-            {
-                CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(8, 3, 8, 3),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            if (receipt.Type == ReceiptType.Membership)
-            {
-                badge.Background = new SolidColorBrush(
-                    Color.FromRgb(237, 231, 246));
-                badge.Child = new TextBlock
-                {
-                    Text = "Memb.",
-                    FontSize = 11,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = new SolidColorBrush(
-                        Color.FromRgb(81, 45, 168))
-                };
-            }
-            else
-            {
-                badge.Background = new SolidColorBrush(
-                    Color.FromRgb(232, 245, 233));
-                badge.Child = new TextBlock
-                {
-                    Text = "Std.",
-                    FontSize = 11,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = new SolidColorBrush(
-                        Color.FromRgb(46, 125, 50))
-                };
-            }
-            Grid.SetColumn(badge, 1);
-            grid.Children.Add(badge);
-
-            // Issued to — shows ID number as subtitle if present
+            // Name + ID
             var nameStack = new StackPanel
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -203,27 +181,22 @@ namespace EReceiptApp.Views.Pages
                 TextTrimming = TextTrimming.CharacterEllipsis
             });
             if (!string.IsNullOrWhiteSpace(receipt.IdNumber))
-            {
                 nameStack.Children.Add(new TextBlock
                 {
                     Text = receipt.IdNumber,
                     FontSize = 11,
                     Foreground = (SolidColorBrush)Application.Current
-                                     .Resources["AppTextMuted"],
+                                     .Resources["AppTextMuted"]
                 });
-            }
             Grid.SetColumn(nameStack, 2);
             grid.Children.Add(nameStack);
 
-            // Date
             grid.Children.Add(MakeCell(
                 receipt.DateIssued.ToString("MMM dd, yyyy"), 3));
-
-            // Total
             grid.Children.Add(MakeCell(
                 $"₱{receipt.TotalAmount:F2}", 4, bold: true));
 
-            // ── Action buttons — compact icon-style ───────────────────────
+            // Action buttons
             var actions = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -231,22 +204,16 @@ namespace EReceiptApp.Views.Pages
                 Margin = new Thickness(4, 0, 4, 0)
             };
 
-            var viewBtn = MakeIconButton("👁", "accent", "View receipt");
-            var dupBtn = MakeIconButton("⧉", "outline", "Duplicate receipt");
-            var editBtn = MakeIconButton("✏", "outline", "Edit receipt");
-            var delBtn = MakeIconButton("🗑", "danger", "Delete receipt");
+            var viewBtn = MakeIconButton("👁", "accent", "View");
+            var dupBtn = MakeIconButton("⧉", "outline", "Duplicate");
+            var editBtn = MakeIconButton("✏", "outline", "Edit");
+            var delBtn = MakeIconButton("🗑", "danger", "Delete");
             delBtn.Margin = new Thickness(0);
 
             viewBtn.Click += (s, e) => ViewReceipt(receipt);
             dupBtn.Click += (s, e) => DuplicateReceipt(receipt);
             editBtn.Click += (s, e) => EditReceipt(receipt);
             delBtn.Click += (s, e) => DeleteReceipt(receipt, border);
-
-            // Add tooltips for clarity
-            viewBtn.ToolTip = "View full receipt";
-            dupBtn.ToolTip = "Duplicate this receipt";
-            editBtn.ToolTip = "Edit this receipt";
-            delBtn.ToolTip = "Delete this receipt";
 
             actions.Children.Add(viewBtn);
             actions.Children.Add(dupBtn);
@@ -407,56 +374,27 @@ namespace EReceiptApp.Views.Pages
         // ── Filter buttons ────────────────────────────────────────────
         private void FilterAll_Click(object sender, RoutedEventArgs e)
         {
-            _currentFilter = "All";
             UpdateFilterButtons(BtnAll);
-            ApplyFilter();
-        }
-
-        private void FilterStandard_Click(object sender, RoutedEventArgs e)
-        {
-            _currentFilter = "Standard";
-            UpdateFilterButtons(BtnStandard);
-            ApplyFilter();
-        }
-
-        private void FilterMembership_Click(object sender, RoutedEventArgs e)
-        {
-            _currentFilter = "Membership";
-            UpdateFilterButtons(BtnMembership);
             ApplyFilter();
         }
 
         private void Refresh_Click(object sender, RoutedEventArgs e)
         {
             TxtSearch.Text = "";
-            _currentFilter = "All";
+
             UpdateFilterButtons(BtnAll);
             LoadReceipts();
         }
 
         private void UpdateFilterButtons(Button active)
         {
-            foreach (var btn in new[] { BtnAll, BtnStandard, BtnMembership })
-            {
-                if (btn == active)
-                {
-                    btn.Background = (SolidColorBrush)
-                        Application.Current.Resources["AppAccent"];
-                    btn.Foreground =
-                        new SolidColorBrush(Colors.White);
-                    btn.BorderBrush = (SolidColorBrush)
-                        Application.Current.Resources["AppAccent"];
-                }
-                else
-                {
-                    btn.Background = (SolidColorBrush)
-                        Application.Current.Resources["AppSurface"];
-                    btn.Foreground = (SolidColorBrush)
-                        Application.Current.Resources["AppText"];
-                    btn.BorderBrush = (SolidColorBrush)
-                        Application.Current.Resources["AppBorder"];
-                }
-            }
+            // Only BtnAll remains
+            BtnAll.Background = (SolidColorBrush)
+                Application.Current.Resources["AppAccent"];
+            BtnAll.Foreground =
+                new SolidColorBrush(Colors.White);
+            BtnAll.BorderBrush = (SolidColorBrush)
+                Application.Current.Resources["AppAccent"];
         }
 
         private void ViewTrash_Click(object sender, RoutedEventArgs e)
@@ -464,7 +402,76 @@ namespace EReceiptApp.Views.Pages
             NavigationService?.Navigate(new TrashPage());
         }
 
-        
+        private void UpdateBulkBar()
+        {
+            int selected = _selectableRows
+                .Count(r => r.Chk.IsChecked == true);
+
+            if (selected > 0)
+            {
+                BulkActionBar.Visibility = Visibility.Visible;
+                TxtSelectedCount.Text =
+                    $"{selected} receipt{(selected == 1 ? "" : "s")} selected";
+            }
+            else
+            {
+                BulkActionBar.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void ChkSelectAll_Changed(
+            object sender, RoutedEventArgs e)
+        {
+            bool check = ChkSelectAll.IsChecked == true;
+            foreach (var row in _selectableRows)
+                row.Chk.IsChecked = check;
+            UpdateBulkBar();
+        }
+
+        private void BulkDelete_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = _selectableRows
+                .Where(r => r.Chk.IsChecked == true)
+                .ToList();
+
+            if (selected.Count == 0) return;
+
+            var result = MessageBox.Show(
+                $"Move {selected.Count} receipt(s) to Trash?",
+                "Bulk Delete",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            var ids = selected.Select(r => r.Receipt.Id).ToList();
+            _db.SoftDeleteMultiple(ids);
+
+            foreach (var row in selected)
+            {
+                ReceiptsPanel.Children.Remove(row.Row);
+                _allReceipts.RemoveAll(r => r.Id == row.Receipt.Id);
+                _filteredReceipts.RemoveAll(r => r.Id == row.Receipt.Id);
+                _selectableRows.RemoveAll(r => r.Receipt.Id == row.Receipt.Id);
+            }
+
+            UpdateStats();
+            UpdateBulkBar();
+            ChkSelectAll.IsChecked = false;
+
+            if (_filteredReceipts.Count == 0)
+                TxtEmpty.Visibility = Visibility.Visible;
+        }
+
+        private void ClearSelection_Click(
+            object sender, RoutedEventArgs e)
+        {
+            foreach (var row in _selectableRows)
+                row.Chk.IsChecked = false;
+            ChkSelectAll.IsChecked = false;
+            UpdateBulkBar();
+        }
+
 
     }
 }

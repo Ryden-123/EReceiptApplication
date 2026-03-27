@@ -154,38 +154,6 @@ namespace EReceiptApp.Services
                 18, true, TextAlignment.Center,
                 Colors.Black, 0, 4));
 
-            if (!string.IsNullOrWhiteSpace(receipt.ClubName))
-                stack.Children.Add(MakeText(
-                    receipt.ClubName, 13, false,
-                    TextAlignment.Center,
-                    Color.FromRgb(120, 120, 140), 0, 0));
-
-            // Badge
-            var badgeColor = receipt.Type == ReceiptType.Membership
-                ? Color.FromRgb(237, 231, 246)
-                : Color.FromRgb(232, 245, 233);
-            var badgeTextColor = receipt.Type == ReceiptType.Membership
-                ? Color.FromRgb(81, 45, 168)
-                : Color.FromRgb(46, 125, 50);
-
-            var badge = new Border
-            {
-                Background = new SolidColorBrush(badgeColor),
-                CornerRadius = new CornerRadius(20),
-                Padding = new Thickness(14, 5, 14, 5),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 12, 0, 20)
-            };
-            badge.Child = new TextBlock
-            {
-                Text = receipt.Type == ReceiptType.Membership
-                    ? "Membership Receipt" : "Standard Receipt",
-                FontSize = 11,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(badgeTextColor)
-            };
-            stack.Children.Add(badge);
-
             // Receipt info rows
             stack.Children.Add(MakeRow("Receipt No.",
                 receipt.ReceiptNumber));
@@ -204,15 +172,6 @@ namespace EReceiptApp.Services
                 stack.Children.Add(MakeRow("ID Number",
                     receipt.IdNumber));
 
-            if (receipt.Type == ReceiptType.Membership)
-            {
-                if (!string.IsNullOrWhiteSpace(receipt.ClubName))
-                    stack.Children.Add(MakeRow("Membership Type",
-                        receipt.ClubName));
-                if (!string.IsNullOrWhiteSpace(receipt.OrganizationName))
-                    stack.Children.Add(MakeRow("School Year",
-                        receipt.OrganizationName));
-            }
 
             stack.Children.Add(MakeDivider());
 

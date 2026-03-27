@@ -1,0 +1,84 @@
+<Page x:Class="EReceiptApp.Views.Pages.OnboardingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Welcome"
+      Background="#80000000">
+
+    <Grid>
+        <!-- Dark overlay -->
+        <Rectangle Fill="#70000000"/>
+
+        <!-- Centered card -->
+        <Border MaxWidth="460" MaxHeight="520"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{DynamicResource AppSurface}"
+                BorderBrush="{DynamicResource AppBorder}"
+                BorderThickness="1" CornerRadius="18"
+                Padding="36,32">
+            <StackPanel>
+
+                <!-- Step icon -->
+                <TextBlock x:Name="TxtStepIcon"
+                           FontSize="48"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,16"/>
+
+                <!-- Step title -->
+                <TextBlock x:Name="TxtStepTitle"
+                           FontSize="20" FontWeight="Bold"
+                           Foreground="{DynamicResource AppText}"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           Margin="0,0,0,10"/>
+
+                <!-- Step description -->
+                <TextBlock x:Name="TxtStepDesc"
+                           FontSize="13" TextWrapping="Wrap"
+                           Foreground="{DynamicResource AppTextMuted}"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           LineHeight="22"
+                           Margin="0,0,0,28"/>
+
+                <!-- Progress dots -->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,28">
+                    <Ellipse x:Name="Dot1" Width="8" Height="8"
+                             Margin="4,0"
+                             Fill="{DynamicResource AppAccent}"/>
+                    <Ellipse x:Name="Dot2" Width="8" Height="8"
+                             Margin="4,0"
+                             Fill="{DynamicResource AppBorder}"/>
+                    <Ellipse x:Name="Dot3" Width="8" Height="8"
+                             Margin="4,0"
+                             Fill="{DynamicResource AppBorder}"/>
+                    <Ellipse x:Name="Dot4" Width="8" Height="8"
+                             Margin="4,0"
+                             Fill="{DynamicResource AppBorder}"/>
+                    <Ellipse x:Name="Dot5" Width="8" Height="8"
+                             Margin="4,0"
+                             Fill="{DynamicResource AppBorder}"/>
+                </StackPanel>
+
+                <!-- Buttons -->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                    <Button x:Name="BtnSkip"
+                            Content="Skip tutorial"
+                            Style="{StaticResource SecondaryButton}"
+                            Padding="14,8" FontSize="12"
+                            Margin="0,0,12,0"
+                            Click="Skip_Click"/>
+                    <Button x:Name="BtnNext"
+                            Content="Next →"
+                            Style="{StaticResource PrimaryButton}"
+                            Padding="20,8" FontSize="13"
+                            Click="Next_Click"/>
+                </StackPanel>
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

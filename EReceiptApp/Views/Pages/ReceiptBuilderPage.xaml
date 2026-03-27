@@ -1,74 +1,11 @@
 <Page x:Class="EReceiptApp.Views.Pages.ReceiptBuilderPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Receipt Builder">
-
-    <Page.Resources>
-        <!-- Label style -->
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#555"/>
-            <Setter Property="Margin" Value="0,10,0,3"/>
-        </Style>
-
-        <!-- Text input style -->
-        <Style x:Key="InputBox" TargetType="TextBox">
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="BorderBrush" Value="#CCC"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-
-        <!-- Action button style -->
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#5C4ABB"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="16,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#4A3AA8"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- Secondary button style -->
-        <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#EEE"/>
-            <Setter Property="Foreground" Value="#333"/>
-            <Setter Property="Padding" Value="16,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#DDD"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- Danger button (remove row) -->
-        <Style x:Key="DangerButton" TargetType="Button">
-            <Setter Property="Background" Value="#E74C3C"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="6,4"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#C0392B"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </Page.Resources>
+      Title="Receipt Builder"
+      Background="{DynamicResource AppBackground}">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Margin="30">
+        <Grid Margin="28">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="24"/>
@@ -79,140 +16,188 @@
             <StackPanel Grid.Column="0">
 
                 <!-- Page header -->
-                <TextBlock x:Name="PageTitle" FontSize="22" FontWeight="Bold"
-                           Foreground="#1E1E2E" Margin="0,0,0,4"/>
-                <TextBlock x:Name="PageSubtitle" FontSize="13" Foreground="#888"
-                           Margin="0,0,0,20"/>
+                <TextBlock x:Name="PageTitle"
+                           FontSize="22" FontWeight="Bold"
+                           Foreground="{DynamicResource AppText}"
+                           Margin="0,0,0,4"/>
+                <TextBlock x:Name="PageSubtitle"
+                           FontSize="13"
+                           Foreground="{DynamicResource AppTextMuted}"
+                           Margin="0,0,0,24"
+                           TextWrapping="Wrap"/>
 
-                <!-- Receipt type badge -->
-                <Border x:Name="TypeBadge" CornerRadius="4" Padding="10,5"
-                        HorizontalAlignment="Left" Margin="0,0,0,20">
-                    <TextBlock x:Name="TypeBadgeText" FontSize="12" FontWeight="SemiBold"/>
-                </Border>
+                <!-- ── Receipt Information ── -->
+                <TextBlock Text="RECEIPT INFORMATION"
+                           FontSize="10" FontWeight="Bold"
+                           Foreground="{DynamicResource AppTextMuted}"
+                           Margin="0,0,0,8"/>
+                <Separator Margin="0,0,0,12"/>
 
-                <!-- ── SECTION: Receipt Info ── -->
-                <TextBlock Text="RECEIPT INFORMATION" FontSize="11" FontWeight="Bold"
-                           Foreground="#999" Margin="0,0,0,8"/>
-                <Separator Margin="0,0,0,10"/>
+                <TextBlock Text="Receipt Number"
+                           Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="TxtReceiptNumber"
+                         Style="{StaticResource InputBox}"
+                         IsReadOnly="True"
+                         Background="{DynamicResource AppSurfaceAlt}"/>
 
-                <TextBlock Text="Receipt Number" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="TxtReceiptNumber" Style="{StaticResource InputBox}"
-                         IsReadOnly="True" Background="#F5F5F5"/>
+                <TextBlock Text="Date Issued"
+                           Style="{StaticResource FieldLabel}"/>
+                <DatePicker x:Name="DpDateIssued"
+                            FontSize="13" Padding="8"
+                            BorderBrush="{DynamicResource AppBorder}"
+                            Margin="0,0,0,4"/>
 
-                <TextBlock Text="Date Issued" Style="{StaticResource FieldLabel}"/>
-                <DatePicker x:Name="DpDateIssued" FontSize="13" Padding="6"
-                            BorderBrush="#CCC" Margin="0,0,0,4"/>
+                <TextBlock Text="Cashier / Issued By ✱"
+                           Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="TxtCashier"
+                         Style="{StaticResource InputBox}"
+                         MaxLength="100"/>
 
-                <TextBlock Text="Cashier / Issued By" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="TxtCashier" Style="{StaticResource InputBox}" MaxLength="100"/>
+                <TextBlock Text="Organization / Store (optional)"
+                           Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="TxtOrganization"
+                         Style="{StaticResource InputBox}"
+                         MaxLength="150"/>
 
-                <!-- ── SECTION: Recipient Info ── -->
-                <TextBlock Text="RECIPIENT INFORMATION" FontSize="11" FontWeight="Bold"
-                           Foreground="#999" Margin="0,20,0,8"/>
-                <Separator Margin="0,0,0,10"/>
+                <!-- ── Recipient Information ── -->
+                <TextBlock Text="RECIPIENT INFORMATION"
+                           FontSize="10" FontWeight="Bold"
+                           Foreground="{DynamicResource AppTextMuted}"
+                           Margin="0,20,0,8"/>
+                <Separator Margin="0,0,0,12"/>
 
-                <TextBlock Text="Issued To (Full Name)" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="TxtIssuedTo" Style="{StaticResource InputBox}" MaxLength="100"/>
+                <TextBlock Text="Issued To ✱"
+                           Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="TxtIssuedTo"
+                         Style="{StaticResource InputBox}"
+                         MaxLength="100"/>
 
-                <TextBlock Text="Organization / School" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="TxtOrganization" Style="{StaticResource InputBox}" MaxLength="150"/>
+                <TextBlock Text="ID Number (optional)"
+                           Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="TxtIdNumber"
+                         Style="{StaticResource InputBox}"
+                         MaxLength="30"/>
 
-                <!-- Membership-only fields (hidden for Standard) -->
-                <StackPanel x:Name="MembershipFields" Visibility="Collapsed">
-                    <TextBlock Text="Club / Organization Name" Style="{StaticResource FieldLabel}"/>
-                    <TextBox x:Name="TxtClubName" Style="{StaticResource InputBox}" MaxLength="100"/>
-
-                    <TextBlock Text="Membership Type" Style="{StaticResource FieldLabel}"/>
-                    <ComboBox x:Name="CmbMembershipType" FontSize="13" Padding="8,6"
-                              BorderBrush="#CCC">
-                        <ComboBoxItem Content="Regular Member"/>
-                        <ComboBoxItem Content="Associate Member"/>
-                        <ComboBoxItem Content="Honorary Member"/>
-                        <ComboBoxItem Content="Officer"/>
-                        <ComboBoxItem Content="President"/>
-                        <ComboBoxItem Content="Other"/>
-                    </ComboBox>
-
-                    <TextBlock Text="Academic Year / Semester" Style="{StaticResource FieldLabel}"/>
-                    <TextBox x:Name="TxtAcademicYear" Style="{StaticResource InputBox}" MaxLength="50"/>
-
-                    <TextBlock Text="Student ID Number" Style="{StaticResource FieldLabel}"/>
-                    <TextBox x:Name="TxtStudentId" Style="{StaticResource InputBox}" MaxLength="30"/>
-                </StackPanel>
-
-                <TextBlock Text="ID Number (Optional)" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="TxtIdNumber" Style="{StaticResource InputBox}" MaxLength="30"/>
-
-                <!-- Notes -->
-                <TextBlock Text="Notes / Remarks" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="TxtNotes" Style="{StaticResource InputBox}"
+                <TextBlock Text="Notes / Remarks (optional)"
+                           Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="TxtNotes"
+                         Style="{StaticResource InputBox}"
                          Height="70" TextWrapping="Wrap"
-                         AcceptsReturn="True" VerticalScrollBarVisibility="Auto" MaxLength="500"/>
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"
+                         MaxLength="300"/>
+
+                <TextBlock Text="✱ Required fields"
+                           FontSize="11"
+                           Foreground="{DynamicResource AppTextMuted}"
+                           Margin="0,10,0,0"/>
 
             </StackPanel>
 
             <!-- ===== RIGHT COLUMN ===== -->
             <StackPanel Grid.Column="2">
 
-                <!-- ── SECTION: Items ── -->
-                <TextBlock Text="ITEMS / FEES" FontSize="11" FontWeight="Bold"
-                           Foreground="#999" Margin="0,36,0,8"/>
-                <Separator Margin="0,0,0,10"/>
+                <!-- ── Items / Fees ── -->
+                <TextBlock Text="ITEMS / FEES"
+                           FontSize="10" FontWeight="Bold"
+                           Foreground="{DynamicResource AppTextMuted}"
+                           Margin="0,36,0,8"/>
+                <Separator Margin="0,0,0,12"/>
 
-                <!-- Items column headers -->
+                <!-- Column headers -->
                 <Grid Margin="0,0,0,6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="60"/>
-                        <ColumnDefinition Width="80"/>
-                        <ColumnDefinition Width="80"/>
-                        <ColumnDefinition Width="36"/>
+                        <ColumnDefinition Width="56"/>
+                        <ColumnDefinition Width="76"/>
+                        <ColumnDefinition Width="76"/>
+                        <ColumnDefinition Width="30"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Description" Style="{StaticResource FieldLabel}" Margin="0,0,4,0"/>
-                    <TextBlock Grid.Column="1" Text="Qty" Style="{StaticResource FieldLabel}" Margin="0,0,4,0"/>
-                    <TextBlock Grid.Column="2" Text="Unit Price" Style="{StaticResource FieldLabel}" Margin="0,0,4,0"/>
-                    <TextBlock Grid.Column="3" Text="Total" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Grid.Column="0" Text="Description"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,4,0"/>
+                    <TextBlock Grid.Column="1" Text="Qty"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,4,0"/>
+                    <TextBlock Grid.Column="2" Text="Unit Price"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,4,0"/>
+                    <TextBlock Grid.Column="3" Text="Total"
+                               Style="{StaticResource FieldLabel}"/>
                 </Grid>
 
                 <!-- Dynamic item rows -->
                 <StackPanel x:Name="ItemsPanel"/>
 
-                <!-- Add item button -->
-                <Button Content="+ Add Item" Style="{StaticResource SecondaryButton}"
-                        HorizontalAlignment="Left" Margin="0,8,0,0"
-                        Click="AddItem_Click"/>
+                <!-- Add item buttons -->
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Content="+ Add Item"
+                            Style="{StaticResource SecondaryButton}"
+                            Padding="12,6" FontSize="12"
+                            Margin="0,0,8,0"
+                            Click="AddItem_Click"/>
+                    <Button Content="📋 Pick from List"
+                            Style="{StaticResource SecondaryButton}"
+                            Padding="12,6" FontSize="12"
+                            Click="PickPreset_Click"/>
+                </StackPanel>
 
-                <!-- ── Totals area ── -->
-                <Border BorderBrush="#DDD" BorderThickness="1"
-                        CornerRadius="6" Margin="0,20,0,0" Padding="16">
+                <!-- Totals -->
+                <Border Background="{DynamicResource AppSurfaceAlt}"
+                        BorderBrush="{DynamicResource AppBorder}"
+                        BorderThickness="1" CornerRadius="10"
+                        Margin="0,16,0,0" Padding="16">
                     <StackPanel>
                         <Grid Margin="0,0,0,6">
-                            <TextBlock Text="Subtotal:" FontSize="13" Foreground="#555"/>
-                            <TextBlock x:Name="TxtSubtotal" Text="PHP 0.00"
-                                       FontSize="13" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Subtotal:"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource AppTextMuted}"/>
+                            <TextBlock x:Name="TxtSubtotal"
+                                       Text="₱0.00"
+                                       FontSize="13"
+                                       HorizontalAlignment="Right"
+                                       Foreground="{DynamicResource AppText}"/>
                         </Grid>
                         <Separator Margin="0,6"/>
                         <Grid>
-                            <TextBlock Text="TOTAL" FontSize="15" FontWeight="Bold"/>
-                            <TextBlock x:Name="TxtTotal" Text="PHP 0.00"
+                            <TextBlock Text="TOTAL"
                                        FontSize="15" FontWeight="Bold"
-                                       Foreground="#5C4ABB" HorizontalAlignment="Right"/>
+                                       Foreground="{DynamicResource AppText}"/>
+                            <TextBlock x:Name="TxtTotal"
+                                       Text="₱0.00"
+                                       FontSize="15" FontWeight="Bold"
+                                       Foreground="{DynamicResource AppAccent}"
+                                       HorizontalAlignment="Right"/>
                         </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- ── Action buttons ── -->
-                <StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Right">
-                    <Button Content="Clear Form" Style="{StaticResource SecondaryButton}"
-                            Margin="0,0,10,0" Click="ClearForm_Click"/>
-                    <Button Content="Preview Receipt →" Style="{StaticResource PrimaryButton}"
+                <!-- Action buttons -->
+                <StackPanel Orientation="Horizontal"
+                            Margin="0,16,0,0"
+                            HorizontalAlignment="Right">
+                    <Button Content="Clear Form"
+                            Style="{StaticResource SecondaryButton}"
+                            Padding="14,8" FontSize="12"
+                            Margin="0,0,10,0"
+                            Click="ClearForm_Click"/>
+                    <Button Content="Preview Receipt →"
+                            Style="{StaticResource PrimaryButton}"
+                            Padding="14,8" FontSize="12"
                             Click="PreviewReceipt_Click"/>
                 </StackPanel>
 
-                <!-- Validation message -->
-                <TextBlock x:Name="TxtValidation" Foreground="#E74C3C"
-                           FontSize="12" Margin="0,10,0,0" Visibility="Collapsed"
-                           TextWrapping="Wrap"/>
+                <!-- Validation -->
+                <Border x:Name="ValidationPanel"
+                        Background="{DynamicResource AppDangerLight}"
+                        BorderBrush="{DynamicResource AppDanger}"
+                        BorderThickness="1" CornerRadius="8"
+                        Padding="12" Margin="0,10,0,0"
+                        Visibility="Collapsed">
+                    <TextBlock x:Name="TxtValidation"
+                               Foreground="{DynamicResource AppDanger}"
+                               FontSize="12" TextWrapping="Wrap"/>
+                </Border>
 
             </StackPanel>
         </Grid>

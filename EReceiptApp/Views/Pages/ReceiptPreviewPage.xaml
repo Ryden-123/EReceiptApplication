@@ -37,13 +37,6 @@
 							   TextWrapping="Wrap" TextAlignment="Center"
 							   Margin="0,0,0,4"/>
 
-					<TextBlock x:Name="TxtClubName"
-							   FontSize="13"
-							   Foreground="{DynamicResource AppTextMuted}"
-							   HorizontalAlignment="Center"
-							   TextAlignment="Center"
-							   Margin="0,0,0,0"/>
-
 					<!-- Type Badge -->
 					<Border x:Name="TypeBadge" CornerRadius="20"
 							Padding="14,5" HorizontalAlignment="Center"

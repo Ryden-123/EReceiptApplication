@@ -7,15 +7,37 @@ namespace EReceiptApp
 {
     public partial class MainWindow : Window
     {
+
+        
+
         public MainWindow()
         {
             InitializeComponent();
-
-            // Hook fade transition on every navigation
             MainFrame.Navigated += MainFrame_Navigated;
 
-            MainFrame.Navigate(new Views.Pages.HomeScreen(this));
+            // Check if first time launch
+            var settings = Services.SettingsService.Load();
+            if (!settings.HasCompletedOnboarding)
+            {
+                // Show dashboard first, then onboarding overlay
+                ShowSidebar();
+                MainFrame.Navigate(new Views.Pages.OnboardingPage(this));
+            }
+            else
+            {
+                ShowSidebar();
+            }
         }
+
+        public void ShowSidebar()
+        {
+            SidebarColumn.Width =
+                new System.Windows.GridLength(220);
+            SidebarPanel.Visibility = Visibility.Visible;
+            MainFrame.Navigate(new Views.Pages.DashboardPage());
+        }
+
+
 
         private void MainFrame_Navigated(object sender,
             System.Windows.Navigation.NavigationEventArgs e)
@@ -44,13 +66,7 @@ namespace EReceiptApp
             }
         }
 
-        // Called by HomeScreen when Start is clicked
-        public void ShowSidebar()
-        {
-            SidebarColumn.Width = new System.Windows.GridLength(220);
-            SidebarPanel.Visibility = Visibility.Visible;
-            MainFrame.Navigate(new Views.Pages.DashboardPage());
-        }
+        
 
         // Called by HomeScreen when Settings is clicked
         public void GoToSettings()
@@ -71,15 +87,6 @@ namespace EReceiptApp
             MainFrame.Navigate(new HomeScreen(this));
         }
 
-        private void NewStandardReceipt_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.Navigate(new ReceiptBuilderPage(ReceiptType.Standard));
-        }
-
-        private void NewMembershipReceipt_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.Navigate(new ReceiptBuilderPage(ReceiptType.Membership));
-        }
 
         private void ViewReceipts_Click(object sender, RoutedEventArgs e)
         {
@@ -110,24 +117,11 @@ namespace EReceiptApp
 
             switch (e.Key)
             {
-                // Ctrl+N — New Standard Receipt
                 case System.Windows.Input.Key.N:
                     if (SidebarPanel.Visibility == Visibility.Visible)
                     {
                         MainFrame.Navigate(
-                            new Views.Pages.ReceiptBuilderPage(
-                                Models.ReceiptType.Standard));
-                        e.Handled = true;
-                    }
-                    break;
-
-                // Ctrl+M — New Membership Receipt
-                case System.Windows.Input.Key.M:
-                    if (SidebarPanel.Visibility == Visibility.Visible)
-                    {
-                        MainFrame.Navigate(
-                            new Views.Pages.ReceiptBuilderPage(
-                                Models.ReceiptType.Membership));
+                            new Views.Pages.ReceiptBuilderPage());
                         e.Handled = true;
                     }
                     break;
@@ -157,6 +151,12 @@ namespace EReceiptApp
         private void Dashboard_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.Navigate(new Views.Pages.DashboardPage());
+        }
+
+        private void NewReceipt_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(
+                new Views.Pages.ReceiptBuilderPage());
         }
     }
 }

@@ -66,75 +66,44 @@ namespace EReceiptApp.Views.Pages
         // ── Fill all receipt fields ───────────────────────────────────
         private void PopulateReceipt()
         {
-            // Load logo if available
-            var logo = LogoService.LoadLogo();
-            if (logo != null)
-            {
-                ImgReceiptLogo.Source = logo;
-                ImgReceiptLogo.Visibility = Visibility.Visible;
-            }
-            // Header
-            TxtOrgName.Text = string.IsNullOrWhiteSpace(_receipt.OrganizationName)
+            // Header — show org name if filled, otherwise app name
+            TxtOrgName.Text = string.IsNullOrWhiteSpace(
+                _receipt.OrganizationName)
                 ? "E-Receipt System"
                 : _receipt.OrganizationName;
 
-            TxtClubName.Text = _receipt.ClubName;
-            TxtClubName.Visibility = string.IsNullOrWhiteSpace(_receipt.ClubName)
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-
-            // Type badge
-            if (_receipt.Type == ReceiptType.Membership)
-            {
-                TxtTypeBadge.Text = "🪪  Membership Receipt";
-                TypeBadge.Background = new SolidColorBrush(
-                    Color.FromRgb(237, 231, 246));
-                TxtTypeBadge.Foreground = new SolidColorBrush(
-                    Color.FromRgb(81, 45, 168));
-            }
-            else
-            {
-                TxtTypeBadge.Text = "🧾  Standard Receipt";
-                TypeBadge.Background = new SolidColorBrush(
-                    Color.FromRgb(232, 245, 233));
-                TxtTypeBadge.Foreground = new SolidColorBrush(
-                    Color.FromRgb(46, 125, 50));
-            }
+            // Hide type badge — no types anymore
+            TypeBadge.Visibility = Visibility.Collapsed;
 
             // Receipt info
             TxtReceiptNumber.Text = _receipt.ReceiptNumber;
-            TxtDate.Text = _receipt.DateIssued.ToString("MMMM dd, yyyy");
+            TxtDate.Text =
+                _receipt.DateIssued.ToString("MMMM dd, yyyy");
             TxtCashier.Text = _receipt.CashierName;
 
             // Recipient
             TxtIssuedTo.Text = _receipt.IssuedTo;
 
-            // ID Number (optional)
+            // ID Number — hide if empty
             if (!string.IsNullOrWhiteSpace(_receipt.IdNumber))
             {
                 TxtIdNumber.Text = _receipt.IdNumber;
                 IdNumberRow.Visibility = Visibility.Visible;
             }
-
-            // Membership-only fields
-            if (_receipt.Type == ReceiptType.Membership)
+            else
             {
-                if (!string.IsNullOrWhiteSpace(_receipt.ClubName))
-                {
-                    TxtMembershipType.Text = _receipt.ClubName;
-                    MembershipRow.Visibility = Visibility.Visible;
-                }
-                if (!string.IsNullOrWhiteSpace(_receipt.OrganizationName))
-                {
-                    TxtAcadYear.Text = _receipt.OrganizationName;
-                    AcadYearRow.Visibility = Visibility.Visible;
-                }
+                IdNumberRow.Visibility = Visibility.Collapsed;
             }
+
+            // Hide membership rows
+            MembershipRow.Visibility = Visibility.Collapsed;
+            AcadYearRow.Visibility = Visibility.Collapsed;
 
             // Items
             foreach (var item in _receipt.Items)
             {
-                var grid = new Grid { Margin = new Thickness(0, 0, 0, 6) };
+                var grid = new Grid
+                { Margin = new Thickness(0, 0, 0, 6) };
                 grid.ColumnDefinitions.Add(new ColumnDefinition
                 { Width = new GridLength(1, GridUnitType.Star) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition
@@ -144,30 +113,37 @@ namespace EReceiptApp.Views.Pages
                 grid.ColumnDefinitions.Add(new ColumnDefinition
                 { Width = new GridLength(80) });
 
-                var desc = MakeText(item.Description, 12, false, 0);
-                var qty = MakeText(item.Quantity.ToString(), 12, false, 1,
-                    TextAlignment.Center);
-                var price = MakeText($"₱{item.UnitPrice:F2}", 12, false, 2,
-                    TextAlignment.Right);
-                var total = MakeText($"₱{item.Total:F2}", 12, true, 3,
-                    TextAlignment.Right);
-
-                grid.Children.Add(desc);
-                grid.Children.Add(qty);
-                grid.Children.Add(price);
-                grid.Children.Add(total);
+                grid.Children.Add(MakeText(item.Description, 12,
+                    false, 0));
+                grid.Children.Add(MakeText(item.Quantity.ToString(),
+                    12, false, 1, TextAlignment.Center));
+                grid.Children.Add(MakeText($"₱{item.UnitPrice:F2}",
+                    12, false, 2, TextAlignment.Right));
+                grid.Children.Add(MakeText($"₱{item.Total:F2}",
+                    12, true, 3, TextAlignment.Right));
 
                 ItemsPanel.Children.Add(grid);
             }
 
-            // Total
             TxtTotal.Text = $"₱{_receipt.TotalAmount:F2}";
 
-            // Notes
+            // Notes — hide if empty
             if (!string.IsNullOrWhiteSpace(_receipt.Notes))
             {
                 TxtNotes.Text = $"📝 {_receipt.Notes}";
                 TxtNotes.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                TxtNotes.Visibility = Visibility.Collapsed;
+            }
+
+            // Logo
+            var logo = LogoService.LoadLogo();
+            if (logo != null)
+            {
+                ImgReceiptLogo.Source = logo;
+                ImgReceiptLogo.Visibility = Visibility.Visible;
             }
         }
 
@@ -308,40 +284,6 @@ namespace EReceiptApp.Views.Pages
                 _receipt.OrganizationName, 18, true,
                 TextAlignment.Center, Colors.Black, 0, 4));
 
-            if (!string.IsNullOrWhiteSpace(_receipt.ClubName))
-                stack.Children.Add(MakeExportText(
-                    _receipt.ClubName, 13, false,
-                    TextAlignment.Center,
-                    Color.FromRgb(120, 120, 140), 0, 0));
-
-            // Type badge
-            var badgeColor = _receipt.Type == ReceiptType.Membership
-                ? Color.FromRgb(237, 231, 246)
-                : Color.FromRgb(232, 245, 233);
-            var badgeTextColor = _receipt.Type == ReceiptType.Membership
-                ? Color.FromRgb(81, 45, 168)
-                : Color.FromRgb(46, 125, 50);
-            var badgeText = _receipt.Type == ReceiptType.Membership
-                ? "Membership Receipt"
-                : "Standard Receipt";
-
-            var badge = new Border
-            {
-                Background = new SolidColorBrush(badgeColor),
-                CornerRadius = new CornerRadius(20),
-                Padding = new Thickness(14, 5, 14, 5),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 12, 0, 20)
-            };
-            badge.Child = new TextBlock
-            {
-                Text = badgeText,
-                FontSize = 11,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(badgeTextColor)
-            };
-            stack.Children.Add(badge);
-
             // ── Receipt Info ─────────────────────────────────────────────
             stack.Children.Add(MakeExportRow("Receipt No.", _receipt.ReceiptNumber));
             stack.Children.Add(MakeExportRow("Date",
@@ -350,6 +292,26 @@ namespace EReceiptApp.Views.Pages
 
             stack.Children.Add(MakeExportDivider());
 
+            // Replace badge block with a simple "Receipt" label
+            var badge = new Border
+            {
+                Background = new SolidColorBrush(
+                    Color.FromRgb(240, 236, 255)),
+                CornerRadius = new CornerRadius(20),
+                Padding = new Thickness(14, 5, 14, 5),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 12, 0, 20)
+            };
+            badge.Child = new TextBlock
+            {
+                Text = "Official Receipt",
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(
+                    Color.FromRgb(92, 74, 187))
+            };
+            stack.Children.Add(badge);
+
             // ── Recipient ────────────────────────────────────────────────
             stack.Children.Add(MakeExportSectionLabel("RECIPIENT"));
             stack.Children.Add(MakeExportRow("Name", _receipt.IssuedTo));
@@ -357,15 +319,6 @@ namespace EReceiptApp.Views.Pages
             if (!string.IsNullOrWhiteSpace(_receipt.IdNumber))
                 stack.Children.Add(MakeExportRow("ID Number", _receipt.IdNumber));
 
-            if (_receipt.Type == ReceiptType.Membership)
-            {
-                if (!string.IsNullOrWhiteSpace(_receipt.ClubName))
-                    stack.Children.Add(MakeExportRow(
-                        "Membership Type", _receipt.ClubName));
-                if (!string.IsNullOrWhiteSpace(_receipt.OrganizationName))
-                    stack.Children.Add(MakeExportRow(
-                        "School Year", _receipt.OrganizationName));
-            }
 
             stack.Children.Add(MakeExportDivider());
 

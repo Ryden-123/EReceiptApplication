@@ -54,10 +54,9 @@ namespace EReceiptApp.Views.Pages
             var all = _db.GetAllReceipts();
             var thisMonth = _db.GetReceiptsThisMonth();
 
-            var standard = all.Where(
-                r => r.Type == ReceiptType.Standard).ToList();
-            var membership = all.Where(
-                r => r.Type == ReceiptType.Membership).ToList();
+            // Replace with — no types, just use all receipts
+            var standard = all;
+            var membership = new List<Receipt>();
 
             // This month
             StatMonthTotal.Text =
@@ -65,15 +64,18 @@ namespace EReceiptApp.Views.Pages
             StatMonthCount.Text =
                 $"{thisMonth.Count} receipt{(thisMonth.Count == 1 ? "" : "s")}";
 
-            // Standard
-            StatStandard.Text = standard.Count.ToString();
-            StatStandardAmt.Text =
-                $"₱{standard.Sum(r => r.TotalAmount):F2} total";
+            // Replace with
+            StatStandard.Text = all.Count.ToString();
+            StatStandardAmt.Text = $"all time";
 
-            // Membership
-            StatMembership.Text = membership.Count.ToString();
-            StatMembershipAmt.Text =
-                $"₱{membership.Sum(r => r.TotalAmount):F2} total";
+            // Average receipt value
+            decimal avg = all.Count > 0
+                ? all.Sum(r => r.TotalAmount) / all.Count : 0;
+            StatMembership.Text = $"₱{avg:F0}";
+            StatMembershipAmt.Text = "average receipt";
+
+            StatMembership.Text = "—";
+            StatMembershipAmt.Text = "No longer used";
 
             // All time
             StatAllTime.Text =
@@ -426,6 +428,12 @@ namespace EReceiptApp.Views.Pages
         private void VerifyReceipt_Click(object sender, RoutedEventArgs e)
         {
             NavigationService?.Navigate(new VerifyReceiptPage());
+        }
+
+        private void NewReceipt_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService?.Navigate(
+                new ReceiptBuilderPage());
         }
     }
 }

@@ -51,8 +51,55 @@
             </StackPanel>
         </Grid>
 
+		<!-- Bulk action bar -->
+		<Border x:Name="TrashBulkBar"
+				Grid.Row="1"
+				Background="{DynamicResource AppAccentLight}"
+				BorderBrush="{DynamicResource AppAccent}"
+				BorderThickness="1" CornerRadius="8"
+				Padding="14,8" Margin="0,0,0,8"
+				Visibility="Collapsed">
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+				<TextBlock x:Name="TxtTrashSelected"
+						   Grid.Column="0"
+						   FontSize="13" FontWeight="SemiBold"
+						   Foreground="{DynamicResource AppAccent}"
+						   VerticalAlignment="Center"/>
+				<StackPanel Grid.Column="1" Orientation="Horizontal">
+					<Button Content="↩  Restore Selected"
+							Padding="12,6" FontSize="12"
+							BorderThickness="1"
+							BorderBrush="{DynamicResource AppBorder}"
+							Background="{DynamicResource AppSurface}"
+							Foreground="{DynamicResource AppText}"
+							Cursor="Hand" Margin="0,0,8,0"
+							Click="BulkRestore_Click"/>
+					<Button Content="🗑  Delete Selected"
+							Padding="12,6" FontSize="12"
+							BorderThickness="1"
+							BorderBrush="{DynamicResource AppDanger}"
+							Background="{DynamicResource AppDangerLight}"
+							Foreground="{DynamicResource AppDanger}"
+							Cursor="Hand" Margin="0,0,8,0"
+							Click="BulkPermanentDelete_Click"/>
+					<Button Content="✕  Clear"
+							Padding="12,6" FontSize="12"
+							BorderThickness="1"
+							BorderBrush="{DynamicResource AppBorder}"
+							Background="{DynamicResource AppSurface}"
+							Foreground="{DynamicResource AppText}"
+							Cursor="Hand"
+							Click="ClearTrashSelection_Click"/>
+				</StackPanel>
+			</Grid>
+		</Border>
+
         <!-- Empty state -->
-        <Border Grid.Row="1"
+        <Border Grid.Row="2"
                 x:Name="EmptyPanel"
                 Background="{DynamicResource AppSurface}"
                 BorderBrush="{DynamicResource AppBorder}"
@@ -76,7 +123,7 @@
         </Border>
 
         <!-- Trash table -->
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 x:Name="TablePanel"
                 Background="{DynamicResource AppSurface}"
                 BorderBrush="{DynamicResource AppBorder}"

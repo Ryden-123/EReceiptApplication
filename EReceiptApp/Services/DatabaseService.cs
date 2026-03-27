@@ -21,14 +21,13 @@ namespace EReceiptApp.Services
             conn.Open();
             var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                CREATE TABLE IF NOT EXISTS Receipts (
+                -- 1. Create new table without Type
+                CREATE TABLE Receipts_New (
                     Id               INTEGER PRIMARY KEY AUTOINCREMENT,
                     ReceiptNumber    TEXT NOT NULL,
-                    Type             INTEGER NOT NULL,
                     IssuedTo         TEXT,
                     IdNumber         TEXT,
                     OrganizationName TEXT,
-                    ClubName         TEXT,
                     DateIssued       TEXT,
                     ItemsJson        TEXT,
                     TotalAmount      REAL,
@@ -36,29 +35,118 @@ namespace EReceiptApp.Services
                     CashierName      TEXT,
                     IsDeleted        INTEGER DEFAULT 0,
                     DeletedAt        TEXT
-                );";
+                );
+
+                -- 2. Copy data (excluding Type)
+                INSERT INTO Receipts_New 
+                SELECT Id, ReceiptNumber, IssuedTo, IdNumber, OrganizationName, 
+                       DateIssued, ItemsJson, TotalAmount, Notes, CashierName,
+                       IsDeleted, DeletedAt 
+                FROM Receipts;
+
+                -- 3. Replace old table
+                DROP TABLE Receipts;
+                ALTER TABLE Receipts_New RENAME TO Receipts;
+
+                -- 4. Re-create any indexes if you had them (optional)";
             cmd.ExecuteNonQuery();
 
-            // Safely add new columns if upgrading from old DB
+            // Safe column additions for upgrades
             var alterCmds = new[]
             {
                 "ALTER TABLE Receipts ADD COLUMN IdNumber TEXT;",
                 "ALTER TABLE Receipts ADD COLUMN IsDeleted INTEGER DEFAULT 0;",
                 "ALTER TABLE Receipts ADD COLUMN DeletedAt TEXT;"
             };
-
             foreach (var sql in alterCmds)
             {
                 try
                 {
-                    var alter = conn.CreateCommand();
-                    alter.CommandText = sql;
-                    alter.ExecuteNonQuery();
+                    var a = conn.CreateCommand();
+                    a.CommandText = sql;
+                    a.ExecuteNonQuery();
                 }
-                catch { } // Column already exists — safe to ignore
+                catch { }
+            }
+
+            // Seed preset items if table is empty
+            SeedPresetItems(conn);
+        }
+
+        // ── Preset Items ──────────────────────────────────────────────
+        private void SeedPresetItems(SqliteConnection conn)
+        {
+            var check = conn.CreateCommand();
+            check.CommandText = @"
+                CREATE TABLE IF NOT EXISTS PresetItems (
+                    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Name        TEXT NOT NULL,
+                    DefaultPrice REAL DEFAULT 0
+                );";
+            check.ExecuteNonQuery();
+
+            var count = conn.CreateCommand();
+            count.CommandText = "SELECT COUNT(*) FROM PresetItems";
+            long existing = (long)(count.ExecuteScalar() ?? 0L);
+            if (existing > 0) return;
+
+            // Demo preset items
+            var items = new[]
+            {
+                ("Membership Fee",      150.00),
+                ("Registration Fee",    200.00),
+                ("T-Shirt",             250.00),
+                ("ID Lace",              50.00),
+                ("Event Ticket",        100.00),
+                ("Chocolate Chips",      85.00),
+                ("Stick-O",              20.00),
+                ("Bottled Water",        25.00),
+                ("Rice Meal",            60.00),
+                ("Yearbook",            350.00)
+            };
+
+            foreach (var (name, price) in items)
+            {
+                var ins = conn.CreateCommand();
+                ins.CommandText =
+                    "INSERT INTO PresetItems (Name, DefaultPrice) " +
+                    "VALUES ($n, $p)";
+                ins.Parameters.AddWithValue("$n", name);
+                ins.Parameters.AddWithValue("$p", price);
+                ins.ExecuteNonQuery();
             }
         }
 
+        public List<(string Name, double Price)> GetPresetItems()
+        {
+            var list = new List<(string, double)>();
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText =
+                "SELECT Name, DefaultPrice FROM PresetItems " +
+                "ORDER BY Name ASC";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                list.Add((reader.GetString(0),
+                          reader.GetDouble(1)));
+            return list;
+        }
+
+        public void AddPresetItem(string name, double price)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText =
+                "INSERT INTO PresetItems (Name, DefaultPrice) " +
+                "VALUES ($n, $p)";
+            cmd.Parameters.AddWithValue("$n", name);
+            cmd.Parameters.AddWithValue("$p", price);
+            cmd.ExecuteNonQuery();
+        }
+
+        // ── Save / Update ─────────────────────────────────────────────
         public void SaveReceipt(Receipt receipt)
         {
             using var conn = new SqliteConnection(_connectionString);
@@ -66,18 +154,16 @@ namespace EReceiptApp.Services
             var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO Receipts
-                (ReceiptNumber, Type, IssuedTo, IdNumber, OrganizationName,
-                 ClubName, DateIssued, ItemsJson, TotalAmount, Notes, CashierName)
+                (ReceiptNumber, IssuedTo, IdNumber, OrganizationName,
+                 DateIssued, ItemsJson, TotalAmount, Notes, CashierName)
                 VALUES
-                ($num, $type, $to, $id, $org,
-                 $club, $date, $items, $total, $notes, $cashier)";
+                ($num, $to, $id, $org,
+                 $date, $items, $total, $notes, $cashier)";
 
             cmd.Parameters.AddWithValue("$num", receipt.ReceiptNumber);
-            cmd.Parameters.AddWithValue("$type", (int)receipt.Type);
             cmd.Parameters.AddWithValue("$to", receipt.IssuedTo ?? "");
             cmd.Parameters.AddWithValue("$id", receipt.IdNumber ?? "");
             cmd.Parameters.AddWithValue("$org", receipt.OrganizationName ?? "");
-            cmd.Parameters.AddWithValue("$club", receipt.ClubName ?? "");
             cmd.Parameters.AddWithValue("$date", receipt.DateIssued.ToString("o"));
             cmd.Parameters.AddWithValue("$items",
                 JsonSerializer.Serialize(receipt.Items));
@@ -93,24 +179,20 @@ namespace EReceiptApp.Services
             conn.Open();
             var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-        UPDATE Receipts SET
-            Type             = $type,
-            IssuedTo         = $to,
-            IdNumber         = $id,
-            OrganizationName = $org,
-            ClubName         = $club,
-            DateIssued       = $date,
-            ItemsJson        = $items,
-            TotalAmount      = $total,
-            Notes            = $notes,
-            CashierName      = $cashier
-        WHERE Id = $id_pk";
+                UPDATE Receipts SET
+                    IssuedTo         = $to,
+                    IdNumber         = $id,
+                    OrganizationName = $org,
+                    DateIssued       = $date,
+                    ItemsJson        = $items,
+                    TotalAmount      = $total,
+                    Notes            = $notes,
+                    CashierName      = $cashier
+                WHERE Id = $id_pk";
 
-            cmd.Parameters.AddWithValue("$type", (int)receipt.Type);
             cmd.Parameters.AddWithValue("$to", receipt.IssuedTo ?? "");
             cmd.Parameters.AddWithValue("$id", receipt.IdNumber ?? "");
             cmd.Parameters.AddWithValue("$org", receipt.OrganizationName ?? "");
-            cmd.Parameters.AddWithValue("$club", receipt.ClubName ?? "");
             cmd.Parameters.AddWithValue("$date", receipt.DateIssued.ToString("o"));
             cmd.Parameters.AddWithValue("$items",
                 JsonSerializer.Serialize(receipt.Items));
@@ -121,39 +203,28 @@ namespace EReceiptApp.Services
             cmd.ExecuteNonQuery();
         }
 
+        // ── Read ──────────────────────────────────────────────────────
         public List<Receipt> GetAllReceipts()
-        {
-            var list = new List<Receipt>();
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT * FROM Receipts
-                WHERE IsDeleted = 0
-                ORDER BY DateIssued DESC";
+            => QueryReceipts(
+                "SELECT * FROM Receipts WHERE IsDeleted = 0 " +
+                "ORDER BY DateIssued DESC");
 
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                try { list.Add(ReadReceipt(reader)); }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"Error reading receipt: {ex.Message}");
-                }
-            }
-            return list;
-        }
+        public List<Receipt> GetReceiptsThisMonth()
+            => QueryReceipts(
+                "SELECT * FROM Receipts WHERE IsDeleted = 0 " +
+                "AND strftime('%Y-%m', DateIssued) = '" +
+                DateTime.Now.ToString("yyyy-MM") + "' " +
+                "ORDER BY DateIssued DESC");
 
-        public void DeleteReceipt(int id)
-        {
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM Receipts WHERE Id = $id";
-            cmd.Parameters.AddWithValue("$id", id);
-            cmd.ExecuteNonQuery();
-        }
+        public List<Receipt> GetRecentReceipts(int count = 5)
+            => QueryReceipts(
+                $"SELECT * FROM Receipts WHERE IsDeleted = 0 " +
+                $"ORDER BY DateIssued DESC LIMIT {count}");
+
+        public List<Receipt> GetDeletedReceipts()
+            => QueryReceipts(
+                "SELECT * FROM Receipts WHERE IsDeleted = 1 " +
+                "ORDER BY DeletedAt DESC");
 
         public List<Receipt> SearchReceipts(string query)
         {
@@ -167,10 +238,192 @@ namespace EReceiptApp.Services
                   AND (IssuedTo      LIKE $q
                    OR  ReceiptNumber LIKE $q
                    OR  IdNumber      LIKE $q
-                   OR  ClubName      LIKE $q)
+                   OR  OrganizationName LIKE $q)
                 ORDER BY DateIssued DESC";
             cmd.Parameters.AddWithValue("$q", $"%{query}%");
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                try { list.Add(ReadReceipt(reader)); }
+                catch { }
+            }
+            return list;
+        }
 
+        public Receipt? GetReceiptByNumber(string receiptNumber)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText =
+                "SELECT * FROM Receipts WHERE ReceiptNumber = $num LIMIT 1";
+            cmd.Parameters.AddWithValue("$num", receiptNumber);
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                try { return ReadReceipt(reader); }
+                catch { }
+            }
+            return null;
+        }
+
+        public List<(string Date, decimal Total)> GetDailyTotals(int days = 30)
+        {
+            var list = new List<(string, decimal)>();
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT strftime('%Y-%m-%d', DateIssued) as Day,
+                       SUM(TotalAmount) as DayTotal
+                FROM Receipts
+                WHERE IsDeleted = 0
+                  AND DateIssued >= date('now', $days)
+                GROUP BY Day ORDER BY Day ASC";
+            cmd.Parameters.AddWithValue("$days", $"-{days} days");
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                list.Add((reader.GetString(0),
+                          (decimal)reader.GetDouble(1)));
+            return list;
+        }
+
+        public List<(string Name, int Count)> GetTopRecipients(int top = 5)
+        {
+            var list = new List<(string, int)>();
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT IssuedTo, COUNT(*) as Total
+                FROM Receipts WHERE IsDeleted = 0
+                GROUP BY IssuedTo
+                ORDER BY Total DESC LIMIT $top";
+            cmd.Parameters.AddWithValue("$top", top);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                list.Add((reader.GetString(0), reader.GetInt32(1)));
+            return list;
+        }
+
+        // ── Soft delete / restore ─────────────────────────────────────
+        public void SoftDeleteReceipt(int id)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE Receipts SET IsDeleted = 1,
+                DeletedAt = $date WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$date",
+                DateTime.Now.ToString("o"));
+            cmd.Parameters.AddWithValue("$id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void SoftDeleteMultiple(List<int> ids)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            foreach (var id in ids)
+            {
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    UPDATE Receipts SET IsDeleted = 1,
+                    DeletedAt = $date WHERE Id = $id";
+                cmd.Parameters.AddWithValue("$date",
+                    DateTime.Now.ToString("o"));
+                cmd.Parameters.AddWithValue("$id", id);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void RestoreReceipt(int id)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE Receipts SET IsDeleted = 0,
+                DeletedAt = NULL WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void RestoreMultiple(List<int> ids)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            foreach (var id in ids)
+            {
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    UPDATE Receipts SET IsDeleted = 0,
+                    DeletedAt = NULL WHERE Id = $id";
+                cmd.Parameters.AddWithValue("$id", id);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void PermanentlyDeleteReceipt(int id)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText =
+                "DELETE FROM Receipts WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void PermanentlyDeleteMultiple(List<int> ids)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            foreach (var id in ids)
+            {
+                var cmd = conn.CreateCommand();
+                cmd.CommandText =
+                    "DELETE FROM Receipts WHERE Id = $id";
+                cmd.Parameters.AddWithValue("$id", id);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void EmptyTrash()
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText =
+                "DELETE FROM Receipts WHERE IsDeleted = 1";
+            cmd.ExecuteNonQuery();
+        }
+
+        public bool ReceiptNumberExists(
+            string receiptNumber, int excludeId = 0)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(*) FROM Receipts
+                WHERE ReceiptNumber = $num
+                  AND Id != $excludeId
+                  AND IsDeleted = 0";
+            cmd.Parameters.AddWithValue("$num", receiptNumber);
+            cmd.Parameters.AddWithValue("$excludeId", excludeId);
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────
+        private List<Receipt> QueryReceipts(string sql)
+        {
+            var list = new List<Receipt>();
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = sql;
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -184,243 +437,49 @@ namespace EReceiptApp.Services
             return list;
         }
 
-        // Safely read a string column — returns empty string if null
-        private string SafeGetString(SqliteDataReader reader, int index)
-        {
-            return reader.IsDBNull(index)
-                ? string.Empty
-                : reader.GetString(index);
-        }
-
-        // Get receipts from current month only
-        public List<Receipt> GetReceiptsThisMonth()
-        {
-            var list = new List<Receipt>();
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-        SELECT * FROM Receipts
-        WHERE IsDeleted = 0
-          AND strftime('%Y-%m', DateIssued) = $month
-        ORDER BY DateIssued DESC";
-            cmd.Parameters.AddWithValue("$month",
-                DateTime.Now.ToString("yyyy-MM"));
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                try { list.Add(ReadReceipt(reader)); }
-                catch { }
-            }
-            return list;
-        }
-
-        // Get most recent N receipts
-        public List<Receipt> GetRecentReceipts(int count = 5)
-        {
-            var list = new List<Receipt>();
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT * FROM Receipts
-                WHERE IsDeleted = 0
-                ORDER BY DateIssued DESC
-                LIMIT $count";
-            cmd.Parameters.AddWithValue("$count", count);
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                try { list.Add(ReadReceipt(reader)); }
-                catch { }
-            }
-            return list;
-        }
-
-        // Get receipt by receipt number for verification
-        public Receipt? GetReceiptByNumber(string receiptNumber)
-        {
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-        SELECT * FROM Receipts
-        WHERE ReceiptNumber = $num
-        LIMIT 1";
-            cmd.Parameters.AddWithValue("$num", receiptNumber);
-
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                try { return ReadReceipt(reader); }
-                catch { }
-            }
-            return null;
-        }
-
-        // Get daily totals for the past 30 days for the chart
-        public List<(string Date, decimal Total)> GetDailyTotals(int days = 30)
-        {
-            var list = new List<(string, decimal)>();
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-        SELECT strftime('%Y-%m-%d', DateIssued) as Day,
-               SUM(TotalAmount) as DayTotal
-        FROM Receipts
-        WHERE DateIssued >= date('now', $days)
-        GROUP BY Day
-        ORDER BY Day ASC";
-            cmd.Parameters.AddWithValue("$days", $"-{days} days");
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                list.Add((
-                    reader.GetString(0),
-                    (decimal)reader.GetDouble(1)));
-            }
-            return list;
-        }
-
-        // Get top 5 most frequent recipients
-        public List<(string Name, int Count)> GetTopRecipients(int top = 5)
-        {
-            var list = new List<(string, int)>();
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-        SELECT IssuedTo, COUNT(*) as Total
-        FROM Receipts
-        GROUP BY IssuedTo
-        ORDER BY Total DESC
-        LIMIT $top";
-            cmd.Parameters.AddWithValue("$top", top);
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-                list.Add((reader.GetString(0), reader.GetInt32(1)));
-
-            return list;
-        }
-
-        // Shared receipt reader — avoids code duplication
         private Receipt ReadReceipt(SqliteDataReader reader)
         {
-            return new Receipt
-            {
-                Id = reader.GetInt32(0),
-                ReceiptNumber = SafeGetString(reader, 1),
-                Type = (ReceiptType)reader.GetInt32(2),
-                IssuedTo = SafeGetString(reader, 3),
-                IdNumber = SafeGetString(reader, 4),
-                OrganizationName = SafeGetString(reader, 5),
-                ClubName = SafeGetString(reader, 6),
-                DateIssued = DateTime.Parse(SafeGetString(reader, 7)),
-                Items = JsonSerializer
-                                       .Deserialize<List<ReceiptItem>>(
-                                       SafeGetString(reader, 8))
-                                   ?? new List<ReceiptItem>(),
-                TotalAmount = (decimal)reader.GetDouble(9),
-                Notes = SafeGetString(reader, 10),
-                CashierName = SafeGetString(reader, 11)
-            };
-        }
+            var receipt = new Receipt();
 
-        // ── Soft delete ───────────────────────────────────────────────────
-        public void SoftDeleteReceipt(int id)
-        {
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-        UPDATE Receipts
-        SET IsDeleted = 1,
-            DeletedAt = $date
-        WHERE Id = $id";
-            cmd.Parameters.AddWithValue("$date",
-                DateTime.Now.ToString("o"));
-            cmd.Parameters.AddWithValue("$id", id);
-            cmd.ExecuteNonQuery();
-        }
+            // Helper to safely get values by column name
+            string GetStr(string col) =>
+                reader.GetOrdinal(col) >= 0 && !reader.IsDBNull(reader.GetOrdinal(col))
+                    ? reader.GetString(reader.GetOrdinal(col))
+                    : "";
 
-        // ── Restore from trash ────────────────────────────────────────────
-        public void RestoreReceipt(int id)
-        {
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-        UPDATE Receipts
-        SET IsDeleted = 0,
-            DeletedAt = NULL
-        WHERE Id = $id";
-            cmd.Parameters.AddWithValue("$id", id);
-            cmd.ExecuteNonQuery();
-        }
+            double GetDbl(string col) =>
+                reader.GetOrdinal(col) >= 0 && !reader.IsDBNull(reader.GetOrdinal(col))
+                    ? reader.GetDouble(reader.GetOrdinal(col))
+                    : 0;
 
-        // ── Permanently delete ────────────────────────────────────────────
-        public void PermanentlyDeleteReceipt(int id)
-        {
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM Receipts WHERE Id = $id";
-            cmd.Parameters.AddWithValue("$id", id);
-            cmd.ExecuteNonQuery();
-        }
+            int GetInt(string col) =>
+                reader.GetOrdinal(col) >= 0 && !reader.IsDBNull(reader.GetOrdinal(col))
+                    ? reader.GetInt32(reader.GetOrdinal(col))
+                    : 0;
 
-        // ── Get trash items ───────────────────────────────────────────────
-        public List<Receipt> GetDeletedReceipts()
-        {
-            var list = new List<Receipt>();
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-        SELECT * FROM Receipts
-        WHERE IsDeleted = 1
-        ORDER BY DeletedAt DESC";
+            receipt.Id = GetInt("Id");
+            receipt.ReceiptNumber = GetStr("ReceiptNumber");
+            receipt.IssuedTo = GetStr("IssuedTo");
+            receipt.IdNumber = GetStr("IdNumber");
+            receipt.OrganizationName = GetStr("OrganizationName");
 
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                try { list.Add(ReadReceipt(reader)); }
-                catch { }
-            }
-            return list;
-        }
+            // Safe DateTime parsing
+            var dateStr = GetStr("DateIssued");
+            receipt.DateIssued = DateTime.TryParse(dateStr, out var d) ? d : DateTime.MinValue;
 
-        // ── Empty trash ───────────────────────────────────────────────────
-        public void EmptyTrash()
-        {
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                "DELETE FROM Receipts WHERE IsDeleted = 1";
-            cmd.ExecuteNonQuery();
-        }
+            // Safe JSON deserialization
+            var itemsJson = GetStr("ItemsJson");
+            receipt.Items = string.IsNullOrWhiteSpace(itemsJson)
 
-        // ── Check if receipt number already exists ────────────────────────
-        public bool ReceiptNumberExists(
-            string receiptNumber, int excludeId = 0)
-        {
-            using var conn = new SqliteConnection(_connectionString);
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-        SELECT COUNT(*) FROM Receipts
-        WHERE ReceiptNumber = $num
-          AND Id != $excludeId
-          AND IsDeleted = 0";
-            cmd.Parameters.AddWithValue("$num", receiptNumber);
-            cmd.Parameters.AddWithValue("$excludeId", excludeId);
-            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                ? new List<ReceiptItem>()
+                : JsonSerializer.Deserialize<List<ReceiptItem>>(itemsJson) ?? new List<ReceiptItem>();
+
+            receipt.TotalAmount = (decimal)GetDbl("TotalAmount");
+            receipt.Notes = GetStr("Notes");
+            receipt.CashierName = GetStr("CashierName");
+
+
+            return receipt;
         }
     }
 }

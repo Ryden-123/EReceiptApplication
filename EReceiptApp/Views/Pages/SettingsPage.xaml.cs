@@ -258,16 +258,13 @@ namespace EReceiptApp.Views.Pages
         {
             public string GmailAddress { get; set; } = "";
             public string AppPassword { get; set; } = "";
-
-            // Remember last used fields
             public string LastOrganization { get; set; } = "";
             public string LastClubName { get; set; } = "";
             public string LastCashier { get; set; } = "";
             public string LastAcademicYear { get; set; } = "";
-
-            // Sequential receipt counters
             public int StandardCounter { get; set; } = 0;
             public int MembershipCounter { get; set; } = 0;
+            public bool HasCompletedOnboarding { get; set; } = false;
         }
 
         private void BackupDatabase_Click(

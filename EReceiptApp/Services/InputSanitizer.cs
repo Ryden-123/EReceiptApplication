@@ -5,6 +5,7 @@ namespace EReceiptApp.Services
 {
     public static class InputSanitizer
     {
+
         // ── Sanitize: strip dangerous content ────────────────────────
 
         // General text fields — removes HTML/script tags and
@@ -53,10 +54,10 @@ namespace EReceiptApp.Services
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
 
-            // Allow letters (including Filipino chars), spaces,
-            // hyphens, dots, apostrophes
+            // Allow letters, numbers, spaces, hyphens, dots, apostrophes
+            // This supports names like "4F BAKESHOP" and "113 STORE"
             input = Regex.Replace(input,
-                @"[^a-zA-ZÀ-ÖØ-öø-ÿ\s\-\.\']", string.Empty);
+                @"[^a-zA-Z0-9À-ÖØ-öø-ÿ\s\-\.\']", string.Empty);
 
             return input.Trim();
         }

@@ -4,136 +4,152 @@
       xmlns:controls="clr-namespace:EReceiptApp.Views.Controls"
       Title="Receipts History"
       Background="{DynamicResource AppBackground}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="36"/>
+            <ColumnDefinition Width="155"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="110"/>
+            <ColumnDefinition Width="90"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
 
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        <!-- Select all checkbox -->
+        <CheckBox Grid.Column="0"
+          x:Name="ChkSelectAll"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Margin="0,10"
+          Checked="ChkSelectAll_Changed"
+          Unchecked="ChkSelectAll_Changed"/>
 
-        <!-- Loading spinner -->
-        <StackPanel x:Name="LoadingPanel"
+
+        <Grid Grid.Column="1" Grid.ColumnSpan="5" Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Loading spinner -->
+            <StackPanel x:Name="LoadingPanel"
             Grid.Row="1"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Margin="0,40">
-            <controls:LoadingSpinner
+                <controls:LoadingSpinner
         HorizontalAlignment="Center"
         Margin="0,0,0,10"/>
-            <TextBlock Text="Loading receipts..."
+                <TextBlock Text="Loading receipts..."
                FontSize="13"
                Foreground="{DynamicResource AppTextMuted}"
                HorizontalAlignment="Center"/>
-        </StackPanel>
+            </StackPanel>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            
-            
-            
-            <TextBlock Text="Receipts History"
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                <TextBlock Text="Receipts History"
                        FontSize="24" FontWeight="Bold"
                        Foreground="{DynamicResource AppText}"/>
-            <TextBlock Text="All saved receipts — click any row to view."
+                <TextBlock Text="All saved receipts — click any row to view."
                        FontSize="13"
                        Foreground="{DynamicResource AppTextMuted}"
                        Margin="0,4,0,0"/>
-        </StackPanel>
+            </StackPanel>
 
-        <!-- Stats row -->
-        <Grid Grid.Row="1" Margin="0,0,0,14">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <!-- Stats row -->
+            <Grid Grid.Row="1" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0"
+                <Border Grid.Column="0"
                     Background="{DynamicResource AppSurface}"
                     BorderBrush="{DynamicResource AppBorder}"
                     BorderThickness="1" CornerRadius="8"
                     Padding="14,10">
-                <StackPanel>
-                    <TextBlock x:Name="StatTotal" Text="0"
+                    <StackPanel>
+                        <TextBlock x:Name="StatTotal" Text="0"
                                FontSize="22" FontWeight="Bold"
                                Foreground="{DynamicResource AppAccent}"/>
-                    <TextBlock Text="Total receipts" FontSize="11"
+                        <TextBlock Text="Total receipts" FontSize="11"
                                Foreground="{DynamicResource AppTextMuted}"
                                Margin="0,2,0,0"/>
-                </StackPanel>
-            </Border>
+                    </StackPanel>
+                </Border>
 
-            <Border Grid.Column="2"
+                <Border Grid.Column="2"
                     Background="{DynamicResource AppSurface}"
                     BorderBrush="{DynamicResource AppBorder}"
                     BorderThickness="1" CornerRadius="8"
                     Padding="14,10">
-                <StackPanel>
-                    <TextBlock x:Name="StatStandard" Text="0"
+                    <StackPanel>
+                        <TextBlock x:Name="StatStandard" Text="0"
                                FontSize="22" FontWeight="Bold"
                                Foreground="#2E7D32"/>
-                    <TextBlock Text="Standard" FontSize="11"
+                        <TextBlock Text="Standard" FontSize="11"
                                Foreground="{DynamicResource AppTextMuted}"
                                Margin="0,2,0,0"/>
-                </StackPanel>
-            </Border>
+                    </StackPanel>
+                </Border>
 
-            <Border Grid.Column="4"
+                <Border Grid.Column="4"
                     Background="{DynamicResource AppSurface}"
                     BorderBrush="{DynamicResource AppBorder}"
                     BorderThickness="1" CornerRadius="8"
                     Padding="14,10">
-                <StackPanel>
-                    <TextBlock x:Name="StatMembership" Text="0"
+                    <StackPanel>
+                        <TextBlock x:Name="StatMembership" Text="0"
                                FontSize="22" FontWeight="Bold"
                                Foreground="#512DA8"/>
-                    <TextBlock Text="Membership" FontSize="11"
+                        <TextBlock Text="Membership" FontSize="11"
                                Foreground="{DynamicResource AppTextMuted}"
                                Margin="0,2,0,0"/>
-                </StackPanel>
-            </Border>
+                    </StackPanel>
+                </Border>
 
-            <Border Grid.Column="6"
+                <Border Grid.Column="6"
                     Background="{DynamicResource AppSurface}"
                     BorderBrush="{DynamicResource AppBorder}"
                     BorderThickness="1" CornerRadius="8"
                     Padding="14,10">
-                <StackPanel>
-                    <TextBlock x:Name="StatAmount" Text="₱0.00"
+                    <StackPanel>
+                        <TextBlock x:Name="StatAmount" Text="₱0.00"
                                FontSize="18" FontWeight="Bold"
                                Foreground="{DynamicResource AppAccent}"/>
-                    <TextBlock Text="Total collected" FontSize="11"
+                        <TextBlock Text="Total collected" FontSize="11"
                                Foreground="{DynamicResource AppTextMuted}"
                                Margin="0,2,0,0"/>
-                </StackPanel>
-            </Border>
-        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
-        <!-- Search + Filter toolbar -->
-        <Grid Grid.Row="2" Margin="0,0,0,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <!-- Search + Filter toolbar -->
+            <Grid Grid.Row="2" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <TextBox Grid.Column="0"
+                <TextBox Grid.Column="0"
                      x:Name="TxtSearch"
                      Padding="10,8" FontSize="13"
                      BorderBrush="{DynamicResource AppBorder}"
@@ -142,7 +158,7 @@
                      Foreground="{DynamicResource AppText}"
                      TextChanged="TxtSearch_TextChanged"/>
 
-            <Button Grid.Column="2" x:Name="BtnAll"
+                <Button Grid.Column="2" x:Name="BtnAll"
                     Content="All" Padding="12,7"
                     FontSize="12" BorderThickness="1"
                     BorderBrush="{DynamicResource AppAccent}"
@@ -150,25 +166,7 @@
                     Foreground="White" Cursor="Hand"
                     Click="FilterAll_Click"/>
 
-            <Button Grid.Column="4" x:Name="BtnStandard"
-                    Content="Standard" Padding="12,7"
-                    FontSize="12" BorderThickness="1"
-                    BorderBrush="{DynamicResource AppBorder}"
-                    Background="{DynamicResource AppSurface}"
-                    Foreground="{DynamicResource AppText}"
-                    Cursor="Hand"
-                    Click="FilterStandard_Click"/>
-
-            <Button Grid.Column="6" x:Name="BtnMembership"
-                    Content="Membership" Padding="12,7"
-                    FontSize="12" BorderThickness="1"
-                    BorderBrush="{DynamicResource AppBorder}"
-                    Background="{DynamicResource AppSurface}"
-                    Foreground="{DynamicResource AppText}"
-                    Cursor="Hand"
-                    Click="FilterMembership_Click"/>
-
-            <Button Grid.Column="8"
+                <Button Grid.Column="8"
                 Content="🗑  Trash"
                 Padding="12,7" FontSize="12"
                 BorderThickness="1"
@@ -179,7 +177,7 @@
                 Margin="0,0,6,0"
                 Click="ViewTrash_Click"/>
 
-            <Button Grid.Column="10"
+                <Button Grid.Column="10"
                     Content="↻  Refresh" Padding="12,7"
                     FontSize="12" BorderThickness="1"
                     BorderBrush="{DynamicResource AppBorder}"
@@ -187,70 +185,112 @@
                     Foreground="{DynamicResource AppText}"
                     Cursor="Hand"
                     Click="Refresh_Click"/>
-        </Grid>
+            </Grid>
 
-        <!-- Table -->
-        <Border Grid.Row="3"
+            <!-- Bulk action bar — hidden by default -->
+            <Border x:Name="BulkActionBar"
+        Grid.Row="2"
+        Background="{DynamicResource AppAccentLight}"
+        BorderBrush="{DynamicResource AppAccent}"
+        BorderThickness="1" CornerRadius="8"
+        Padding="14,8" Margin="0,0,0,8"
+        Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="TxtSelectedCount"
+                   Grid.Column="0"
+                   FontSize="13" FontWeight="SemiBold"
+                   Foreground="{DynamicResource AppAccent}"
+                   VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="1"
+                    Orientation="Horizontal">
+                        <Button Content="🗑  Delete Selected"
+                    Padding="12,6" FontSize="12"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource AppDanger}"
+                    Background="{DynamicResource AppDangerLight}"
+                    Foreground="{DynamicResource AppDanger}"
+                    Cursor="Hand" Margin="0,0,8,0"
+                    Click="BulkDelete_Click"/>
+                        <Button Content="✕  Clear Selection"
+                    Padding="12,6" FontSize="12"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource AppBorder}"
+                    Background="{DynamicResource AppSurface}"
+                    Foreground="{DynamicResource AppText}"
+                    Cursor="Hand"
+                    Click="ClearSelection_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Table -->
+            <Border Grid.Row="3"
                 Background="{DynamicResource AppSurface}"
                 BorderBrush="{DynamicResource AppBorder}"
                 BorderThickness="1" CornerRadius="10"
                 ClipToBounds="True">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                <!-- Table header -->
-                <Border Grid.Row="0"
+                    <!-- Table header -->
+                    <Border Grid.Row="0"
                         Background="{DynamicResource AppSurfaceAlt}"
                         BorderBrush="{DynamicResource AppBorder}"
                         BorderThickness="0,0,0,1">
-                    <Grid Margin="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="155"/>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="90"/>
-                            <ColumnDefinition Width="150"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0"
+                        <Grid Margin="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="155"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
                                    Text="Receipt No."
                                    FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource AppTextMuted}"
                                    Margin="16,10,0,10"/>
-                        <TextBlock Grid.Column="1" Text="Type"
+                            <TextBlock Grid.Column="1" Text="Type"
                                    FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource AppTextMuted}"
                                    Margin="0,10"/>
-                        <TextBlock Grid.Column="2" Text="Issued To"
+                            <TextBlock Grid.Column="2" Text="Issued To"
                                    FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource AppTextMuted}"
                                    Margin="0,10"/>
-                        <TextBlock Grid.Column="3" Text="Date"
+                            <TextBlock Grid.Column="3" Text="Date"
                                    FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource AppTextMuted}"
                                    Margin="0,10"/>
-                        <TextBlock Grid.Column="4" Text="Total"
+                            <TextBlock Grid.Column="4" Text="Total"
                                    FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource AppTextMuted}"
                                    Margin="0,10"/>
-                        <TextBlock Grid.Column="5" Text="Actions"
+                            <TextBlock Grid.Column="5" Text="Actions"
                                    FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource AppTextMuted}"
                                    Margin="0,10"/>
-                    </Grid>
-                </Border>
+                        </Grid>
+                    </Border>
 
-                <!-- Rows -->
-                <ScrollViewer Grid.Row="1"
+                    <!-- Rows -->
+                    <ScrollViewer Grid.Row="1"
                               VerticalScrollBarVisibility="Auto">
-                    <StackPanel x:Name="ReceiptsPanel"/>
-                </ScrollViewer>
+                        <StackPanel x:Name="ReceiptsPanel"/>
+                    </ScrollViewer>
 
-                <!-- Empty state -->
-                <TextBlock x:Name="TxtEmpty"
+                    <!-- Empty state -->
+                    <TextBlock x:Name="TxtEmpty"
                            Grid.Row="1"
                            Text="No receipts found."
                            FontSize="14"
@@ -259,7 +299,8 @@
                            VerticalAlignment="Center"
                            Margin="0,48"
                            Visibility="Collapsed"/>
-            </Grid>
-        </Border>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

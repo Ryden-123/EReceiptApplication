@@ -13,6 +13,9 @@ namespace EReceiptApp.Views.Pages
     {
         private readonly DatabaseService _db = new DatabaseService();
         private List<Receipt> _deletedReceipts = new List<Receipt>();
+        private readonly List<(CheckBox Chk, Receipt Receipt,
+    StackPanel Row)> _trashSelectableRows =
+    new List<(CheckBox, Receipt, StackPanel)>();
 
         public TrashPage()
         {
@@ -28,6 +31,7 @@ namespace EReceiptApp.Views.Pages
 
         private void LoadTrash()
         {
+            _trashSelectableRows.Clear();
             _deletedReceipts = _db.GetDeletedReceipts();
 
             if (_deletedReceipts.Count == 0)
@@ -46,18 +50,26 @@ namespace EReceiptApp.Views.Pages
 
         private Border BuildRow(Receipt receipt)
         {
+            var outerStack = new StackPanel();
+
             var border = new Border
             {
                 BorderBrush = new SolidColorBrush(
-                    Color.FromRgb(235, 235, 240)),
-                BorderThickness = new Thickness(0, 0, 0, 1)
+                    Color.FromRgb(232, 228, 248)),
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Cursor = System.Windows.Input.Cursors.Hand
             };
 
+            border.MouseEnter += (s, e) =>
+                border.Background = (SolidColorBrush)Application
+                    .Current.Resources["AppSurfaceAlt"];
+            border.MouseLeave += (s, e) =>
+                border.Background = null;
+
+            // Build the row grid (same as before)
             var grid = new Grid { Margin = new Thickness(0, 2, 0, 2) };
             grid.ColumnDefinitions.Add(new ColumnDefinition
             { Width = new GridLength(155) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition
-            { Width = new GridLength(80) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
             { Width = new GridLength(1, GridUnitType.Star) });
             grid.ColumnDefinitions.Add(new ColumnDefinition
@@ -67,50 +79,10 @@ namespace EReceiptApp.Views.Pages
             grid.ColumnDefinitions.Add(new ColumnDefinition
             { Width = new GridLength(160) });
 
-            // Receipt number
             grid.Children.Add(MakeCell(
                 receipt.ReceiptNumber, 0,
-                new Thickness(16, 10, 4, 10), true));
+                new Thickness(16, 10, 4, 10), bold: true));
 
-            // Type badge
-            var badge = new Border
-            {
-                CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(8, 3, 8, 3),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            if (receipt.Type == ReceiptType.Membership)
-            {
-                badge.Background = new SolidColorBrush(
-                    Color.FromRgb(237, 231, 246));
-                badge.Child = new TextBlock
-                {
-                    Text = "Memb.",
-                    FontSize = 11,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = new SolidColorBrush(
-                        Color.FromRgb(81, 45, 168))
-                };
-            }
-            else
-            {
-                badge.Background = new SolidColorBrush(
-                    Color.FromRgb(232, 245, 233));
-                badge.Child = new TextBlock
-                {
-                    Text = "Std.",
-                    FontSize = 11,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = new SolidColorBrush(
-                        Color.FromRgb(46, 125, 50))
-                };
-            }
-            Grid.SetColumn(badge, 1);
-            grid.Children.Add(badge);
-
-            // Issued to
             var nameStack = new StackPanel
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -121,23 +93,20 @@ namespace EReceiptApp.Views.Pages
                 Text = receipt.IssuedTo,
                 FontSize = 13,
                 FontWeight = FontWeights.SemiBold,
-                Foreground = (SolidColorBrush)Application
-                                   .Current.Resources["AppText"],
+                Foreground = (SolidColorBrush)Application.Current
+                                   .Resources["AppText"],
                 TextTrimming = TextTrimming.CharacterEllipsis
             });
-            Grid.SetColumn(nameStack, 2);
+            Grid.SetColumn(nameStack, 1);
             grid.Children.Add(nameStack);
 
-            // Deleted date — shown in red
             grid.Children.Add(MakeCell(
-                receipt.DateIssued.ToString("MMM dd, yyyy"),
-                3, muted: true));
-
-            // Total
+                receipt.DateIssued.ToString("MMM dd, yyyy"), 2,
+                muted: true));
             grid.Children.Add(MakeCell(
-                $"₱{receipt.TotalAmount:F2}", 4, bold: true));
+                $"₱{receipt.TotalAmount:F2}", 3, bold: true));
 
-            // Actions
+            // Action buttons
             var actions = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -145,30 +114,136 @@ namespace EReceiptApp.Views.Pages
                 Margin = new Thickness(4, 0, 8, 0)
             };
 
-            var restoreBtn = MakeActionButton(
-                "↩ Restore", "restore");
-            var deleteBtn = MakeActionButton(
-                "🗑 Delete", "danger");
-
-            restoreBtn.ToolTip = "Restore this receipt";
+            var restoreBtn = MakeActionButton("↩ Restore", "restore");
+            var deleteBtn = MakeActionButton("🗑 Delete", "danger");
+            restoreBtn.ToolTip = "Restore";
             deleteBtn.ToolTip = "Permanently delete";
 
+            // ── Inline preview panel (hidden by default) ──────────────
+            var previewPanel = new Border
+            {
+                Background = (SolidColorBrush)Application.Current
+                                      .Resources["AppSurfaceAlt"],
+                BorderBrush = (SolidColorBrush)Application.Current
+                                      .Resources["AppBorder"],
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                Padding = new Thickness(16, 12, 16, 12),
+                Visibility = Visibility.Collapsed
+            };
+
+            var previewContent = BuildPreviewContent(receipt);
+            previewPanel.Child = previewContent;
+
+            // Toggle preview on row click
+            bool expanded = false;
+            border.MouseLeftButtonUp += (s, e) =>
+            {
+                if (e.OriginalSource is Button) return;
+                expanded = !expanded;
+                previewPanel.Visibility = expanded
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            };
+
             restoreBtn.Click += (s, e) =>
-                RestoreReceipt(receipt, border);
+                RestoreReceipt(receipt, outerStack);
             deleteBtn.Click += (s, e) =>
-                PermanentlyDelete(receipt, border);
+                PermanentlyDelete(receipt, outerStack);
 
             actions.Children.Add(restoreBtn);
             actions.Children.Add(deleteBtn);
 
-            Grid.SetColumn(actions, 5);
+            Grid.SetColumn(actions, 4);
             grid.Children.Add(actions);
 
             border.Child = grid;
-            return border;
+            outerStack.Children.Add(border);
+            outerStack.Children.Add(previewPanel);
+
+            return new Border
+            {
+                Child = outerStack,
+                BorderBrush = new SolidColorBrush(
+                    Color.FromRgb(232, 228, 248)),
+                BorderThickness = new Thickness(0, 0, 0, 1)
+            };
         }
 
-        private void RestoreReceipt(Receipt receipt, Border row)
+        private StackPanel BuildPreviewContent(Receipt receipt)
+        {
+            var stack = new StackPanel();
+
+            void AddRow(string label, string value)
+            {
+                if (string.IsNullOrWhiteSpace(value)) return;
+                var g = new Grid { Margin = new Thickness(0, 3, 0, 3) };
+                g.ColumnDefinitions.Add(new ColumnDefinition
+                { Width = new GridLength(160) });
+                g.ColumnDefinitions.Add(new ColumnDefinition
+                { Width = new GridLength(1, GridUnitType.Star) });
+
+                var lbl = new TextBlock
+                {
+                    Text = label,
+                    FontSize = 12,
+                    Foreground = (SolidColorBrush)Application.Current
+                                     .Resources["AppTextMuted"]
+                };
+                var val = new TextBlock
+                {
+                    Text = value,
+                    FontSize = 12,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = (SolidColorBrush)Application.Current
+                                     .Resources["AppText"]
+                };
+                Grid.SetColumn(lbl, 0);
+                Grid.SetColumn(val, 1);
+                g.Children.Add(lbl);
+                g.Children.Add(val);
+                stack.Children.Add(g);
+            }
+
+            AddRow("Cashier:", receipt.CashierName);
+            AddRow("Organization:", receipt.OrganizationName);
+            AddRow("ID Number:", receipt.IdNumber);
+            AddRow("Date:", receipt.DateIssued.ToString("MMMM dd, yyyy"));
+            AddRow("Total:", $"₱{receipt.TotalAmount:F2}");
+
+            if (receipt.Items.Count > 0)
+            {
+                stack.Children.Add(new TextBlock
+                {
+                    Text = "Items:",
+                    FontSize = 12,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = (SolidColorBrush)Application.Current
+                                     .Resources["AppTextMuted"],
+                    Margin = new Thickness(0, 6, 0, 4)
+                });
+
+                foreach (var item in receipt.Items)
+                {
+                    stack.Children.Add(new TextBlock
+                    {
+                        Text = $"  • {item.Description} " +
+                                     $"x{item.Quantity} — " +
+                                     $"₱{item.Total:F2}",
+                        FontSize = 12,
+                        Foreground = (SolidColorBrush)Application.Current
+                                         .Resources["AppText"],
+                        Margin = new Thickness(0, 2, 0, 2)
+                    });
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(receipt.Notes))
+                AddRow("Notes:", receipt.Notes);
+
+            return stack;
+        }
+
+        private void RestoreReceipt(Receipt receipt, StackPanel row)
         {
             var result = MessageBox.Show(
                 $"Restore receipt {receipt.ReceiptNumber}?",
@@ -190,28 +265,23 @@ namespace EReceiptApp.Views.Pages
                     TablePanel.Visibility = Visibility.Collapsed;
                 }
 
-                MessageBox.Show(
-                    "Receipt restored successfully!",
-                    "Restored",
-                    MessageBoxButton.OK,
+                MessageBox.Show("Receipt restored successfully!",
+                    "Restored", MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Could not restore: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
+                MessageBox.Show($"Could not restore: {ex.Message}",
+                    "Error", MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
         }
 
-        private void PermanentlyDelete(Receipt receipt, Border row)
+        private void PermanentlyDelete(Receipt receipt, StackPanel row)
         {
             var result = MessageBox.Show(
-                $"Permanently delete receipt " +
-                $"{receipt.ReceiptNumber}?\n\n" +
-                $"This CANNOT be undone.",
+                $"Permanently delete {receipt.ReceiptNumber}?\n\n" +
+                "This CANNOT be undone.",
                 "Permanent Delete",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
@@ -232,10 +302,8 @@ namespace EReceiptApp.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Could not delete: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
+                MessageBox.Show($"Could not delete: {ex.Message}",
+                    "Error", MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
         }
@@ -344,6 +412,101 @@ namespace EReceiptApp.Views.Pages
             }
 
             return btn;
+        }
+
+        private void UpdateTrashBulkBar()
+        {
+            int selected = _trashSelectableRows
+                .Count(r => r.Chk.IsChecked == true);
+
+            if (selected > 0)
+            {
+                TrashBulkBar.Visibility = Visibility.Visible;
+                TxtTrashSelected.Text =
+                    $"{selected} item{(selected == 1 ? "" : "s")} selected";
+            }
+            else
+            {
+                TrashBulkBar.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void BulkRestore_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = _trashSelectableRows
+                .Where(r => r.Chk.IsChecked == true).ToList();
+            if (selected.Count == 0) return;
+
+            var result = MessageBox.Show(
+                $"Restore {selected.Count} receipt(s)?",
+                "Bulk Restore",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            _db.RestoreMultiple(
+                selected.Select(r => r.Receipt.Id).ToList());
+
+            foreach (var row in selected)
+            {
+                TrashPanel.Children.Remove(row.Row);
+                _deletedReceipts.RemoveAll(r => r.Id == row.Receipt.Id);
+                _trashSelectableRows.RemoveAll(
+                    r => r.Receipt.Id == row.Receipt.Id);
+            }
+
+            if (_deletedReceipts.Count == 0)
+            {
+                EmptyPanel.Visibility = Visibility.Visible;
+                TablePanel.Visibility = Visibility.Collapsed;
+            }
+
+            UpdateTrashBulkBar();
+        }
+
+        private void BulkPermanentDelete_Click(
+            object sender, RoutedEventArgs e)
+        {
+            var selected = _trashSelectableRows
+                .Where(r => r.Chk.IsChecked == true).ToList();
+            if (selected.Count == 0) return;
+
+            var result = MessageBox.Show(
+                $"Permanently delete {selected.Count} " +
+                $"receipt(s)?\n\nThis CANNOT be undone.",
+                "Bulk Delete",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            _db.PermanentlyDeleteMultiple(
+                selected.Select(r => r.Receipt.Id).ToList());
+
+            foreach (var row in selected)
+            {
+                TrashPanel.Children.Remove(row.Row);
+                _deletedReceipts.RemoveAll(r => r.Id == row.Receipt.Id);
+                _trashSelectableRows.RemoveAll(
+                    r => r.Receipt.Id == row.Receipt.Id);
+            }
+
+            if (_deletedReceipts.Count == 0)
+            {
+                EmptyPanel.Visibility = Visibility.Visible;
+                TablePanel.Visibility = Visibility.Collapsed;
+            }
+
+            UpdateTrashBulkBar();
+        }
+
+        private void ClearTrashSelection_Click(
+            object sender, RoutedEventArgs e)
+        {
+            foreach (var row in _trashSelectableRows)
+                row.Chk.IsChecked = false;
+            UpdateTrashBulkBar();
         }
     }
 }
