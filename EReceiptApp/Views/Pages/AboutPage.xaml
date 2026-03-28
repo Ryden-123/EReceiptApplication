@@ -7,68 +7,152 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40" MaxWidth="560">
 
-            <TextBlock Text="About" FontSize="24" FontWeight="Bold"
-                       Foreground="{DynamicResource AppText}" Margin="0,0,0,4"/>
+            <!-- Page title -->
+            <TextBlock Text="About"
+                       FontSize="24" FontWeight="Bold"
+                       Foreground="{DynamicResource AppText}"
+                       Margin="0,0,0,4"/>
             <TextBlock Text="E-Receipt System v1.0"
-                       FontSize="13" Foreground="{DynamicResource AppTextMuted}"
+                       FontSize="13"
+                       Foreground="{DynamicResource AppTextMuted}"
                        Margin="0,0,0,32"/>
 
-            <!-- About Card -->
+            <!-- What is this app -->
             <Border Background="{DynamicResource AppSurface}"
                     BorderBrush="{DynamicResource AppBorder}"
-                    BorderThickness="1" CornerRadius="10"
+                    BorderThickness="1" CornerRadius="14"
                     Padding="24" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="What is this app?" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{DynamicResource AppText}" Margin="0,0,0,10"/>
-                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22"
+                    <TextBlock Text="What is this app?"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppText}"
+                               Margin="0,0,0,12"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="13"
+                               Foreground="{DynamicResource AppText}"
+                               Margin="0,0,0,10">
+                        The E-Receipt System is a digital receipt
+                        generator designed for stores, organizations,
+                        and clubs. It allows cashiers and officers to
+                        issue official digital receipts without the
+                        need for paper.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="13"
                                Foreground="{DynamicResource AppText}">
-                        The E-Receipt System is a digital receipt generator designed
-                        for organizations and clubs in Philippine colleges and universities.
-                        It allows officers and cashiers to issue official digital receipts
-                        without the need for paper, making transactions faster, more
-                        organized, and environmentally friendly.
+                        Transactions become faster, more organized,
+                        and environmentally friendly — and recipients
+                        can keep their receipt on their phone by
+                        scanning the QR code.
                     </TextBlock>
                 </StackPanel>
             </Border>
 
-            <!-- Features Card -->
+            <!-- Key Features -->
             <Border Background="{DynamicResource AppSurface}"
                     BorderBrush="{DynamicResource AppBorder}"
-                    BorderThickness="1" CornerRadius="10"
+                    BorderThickness="1" CornerRadius="14"
                     Padding="24" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Key Features" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{DynamicResource AppText}" Margin="0,0,0,10"/>
-                    <TextBlock FontSize="13" LineHeight="24" TextWrapping="Wrap"
+                    <TextBlock Text="Key Features"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppText}"
+                               Margin="0,0,0,14"/>
+
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
                                Foreground="{DynamicResource AppText}">
-                        🧾  Standard receipts for sales and payments&#10;
-                        🪪  Membership receipts as proof of club membership&#10;
-                        📱  QR Code generation for easy phone scanning&#10;
-                        🖨️  Print receipts directly from the app&#10;
-                        🖼️  Export receipts as PNG images&#10;
-                        📧  Send receipts via email&#10;
-                        🌙  Light and dark mode support&#10;
-                        🎨  Custom accent color themes
+                        <Run Text="🧾  "/>
+                        <Run Text="Create general receipts for any type of transaction"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="📱  "/>
+                        <Run Text="QR Code generation so recipients can scan and save"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="🖨️  "/>
+                        <Run Text="Print receipts directly from the app"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="🖼️  "/>
+                        <Run Text="Export receipts as PNG images"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="📄  "/>
+                        <Run Text="Export receipts as PDF documents"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="📧  "/>
+                        <Run Text="Send receipts via email with attachments"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="📋  "/>
+                        <Run Text="Full receipt history with search and filter"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="✅  "/>
+                        <Run Text="QR code verification to confirm authenticity"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="📊  "/>
+                        <Run Text="Dashboard with collection stats and charts"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="💾  "/>
+                        <Run Text="Export receipts to Excel or CSV spreadsheets"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,0"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="🌙  "/>
+                        <Run Text="Light and dark mode with custom accent colors"/>
                     </TextBlock>
                 </StackPanel>
             </Border>
 
-            <!-- Use Case Card -->
+            <!-- Who is this for -->
             <Border Background="{DynamicResource AppSurface}"
                     BorderBrush="{DynamicResource AppBorder}"
-                    BorderThickness="1" CornerRadius="10"
+                    BorderThickness="1" CornerRadius="14"
                     Padding="24" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Who is this for?" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{DynamicResource AppText}" Margin="0,0,0,10"/>
-                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22"
+                    <TextBlock Text="Who is this for?"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppText}"
+                               Margin="0,0,0,14"/>
+
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
                                Foreground="{DynamicResource AppText}">
-                        This app is designed for student organizations, clubs, and college
-                        departments that need to issue receipts for membership fees,
-                        event registrations, or any other payments. Members can simply
-                        scan the QR code on the receipt with their phone as proof of
-                        membership or payment — no paper needed.
+                        <Run Text="🏪  "/>
+                        <Run Text="Stores and small businesses"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="🏫  "/>
+                        <Run Text="Student organizations and clubs"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="🎪  "/>
+                        <Run Text="Events and registrations"/>
+                    </TextBlock>
+                    <TextBlock FontSize="13" Margin="0,0,0,8"
+                               Foreground="{DynamicResource AppText}">
+                        <Run Text="🏢  "/>
+                        <Run Text="Any organization that issues receipts regularly"/>
+                    </TextBlock>
+
+                    <TextBlock TextWrapping="Wrap" FontSize="13"
+                               FontStyle="Italic"
+                               Foreground="{DynamicResource AppTextMuted}"
+                               Margin="0,10,0,0">
+                        Recipients scan the QR code on their phone
+                        as proof of payment — no paper needed.
                     </TextBlock>
                 </StackPanel>
             </Border>

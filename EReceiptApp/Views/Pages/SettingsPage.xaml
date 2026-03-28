@@ -289,30 +289,52 @@
 </Border>
 
 			<!-- App Password help -->
-			<Border Background="{DynamicResource AppSurfaceAlt}"
-                    BorderBrush="{DynamicResource AppBorder}"
-                    BorderThickness="1" CornerRadius="10"
-                    Padding="16" Margin="0,0,0,20">
-				<StackPanel>
-					<TextBlock Text="How to get a Gmail App Password"
-                               FontSize="12" FontWeight="SemiBold"
-                               Foreground="{DynamicResource AppText}"
-                               Margin="0,0,0,8"/>
-					<TextBlock TextWrapping="Wrap" FontSize="12"
-                               Foreground="{DynamicResource AppTextMuted}"
-                               LineHeight="20">
-						1. Go to myaccount.google.com&#10;
-						2. Click Security and enable 2-Step Verification&#10;
-						3. Search for App Passwords&#10;
-						4. Choose Mail and Windows Computer&#10;
-						5. Copy the 16-character password and paste it above
-					</TextBlock>
-				</StackPanel>
-			</Border>
-            
-            
+            <!-- Replace with -->
+            <Border Background="{DynamicResource AppSurfaceAlt}"
+        BorderBrush="{DynamicResource AppBorder}"
+        BorderThickness="1" CornerRadius="10"
+        Padding="16" Margin="0,0,0,20">
+                <StackPanel>
 
-		</StackPanel>
+                    <!-- Title kept here -->
+                    <TextBlock Text="How to get a Gmail App Password"
+                   FontSize="12" FontWeight="SemiBold"
+                   Foreground="{DynamicResource AppText}"
+                   Margin="0,0,0,12"/>
+
+                    <!-- Steps as separate lines -->
+                    <TextBlock FontSize="12" Margin="0,0,0,6"
+                   Foreground="{DynamicResource AppTextMuted}">
+            <Run FontWeight="SemiBold" Text="1."/>
+            <Run Text="  Go to myaccount.google.com"/>
+                    </TextBlock>
+                    <TextBlock FontSize="12" Margin="0,0,0,6"
+                   Foreground="{DynamicResource AppTextMuted}">
+            <Run FontWeight="SemiBold" Text="2."/>
+            <Run Text="  Click Security and enable 2-Step Verification"/>
+                    </TextBlock>
+                    <TextBlock FontSize="12" Margin="0,0,0,6"
+                   Foreground="{DynamicResource AppTextMuted}">
+            <Run FontWeight="SemiBold" Text="3."/>
+            <Run Text="  Search for App Passwords"/>
+                    </TextBlock>
+                    <TextBlock FontSize="12" Margin="0,0,0,6"
+                   Foreground="{DynamicResource AppTextMuted}">
+            <Run FontWeight="SemiBold" Text="4."/>
+            <Run Text="  Choose Mail and Windows Computer"/>
+                    </TextBlock>
+                    <TextBlock FontSize="12"
+                   Foreground="{DynamicResource AppTextMuted}">
+            <Run FontWeight="SemiBold" Text="5."/>
+            <Run Text="  Copy the 16-character password and paste it above"/>
+                    </TextBlock>
+
+                </StackPanel>
+            </Border>
+
+
+
+        </StackPanel>
         
         
 	</ScrollViewer>

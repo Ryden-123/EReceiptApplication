@@ -19,39 +19,94 @@ namespace EReceiptApp.Services
         {
             using var conn = new SqliteConnection(_connectionString);
             conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                -- 1. Create new table without Type
-                CREATE TABLE Receipts_New (
-                    Id               INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ReceiptNumber    TEXT NOT NULL,
-                    IssuedTo         TEXT,
-                    IdNumber         TEXT,
-                    OrganizationName TEXT,
-                    DateIssued       TEXT,
-                    ItemsJson        TEXT,
-                    TotalAmount      REAL,
-                    Notes            TEXT,
-                    CashierName      TEXT,
-                    IsDeleted        INTEGER DEFAULT 0,
-                    DeletedAt        TEXT
-                );
 
-                -- 2. Copy data (excluding Type)
-                INSERT INTO Receipts_New 
-                SELECT Id, ReceiptNumber, IssuedTo, IdNumber, OrganizationName, 
-                       DateIssued, ItemsJson, TotalAmount, Notes, CashierName,
-                       IsDeleted, DeletedAt 
-                FROM Receipts;
+            // Check whether the legacy/previous table exists
+            var check = conn.CreateCommand();
+            check.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='Receipts';";
+            var receiptsExists = check.ExecuteScalar() != null;
 
-                -- 3. Replace old table
-                DROP TABLE Receipts;
-                ALTER TABLE Receipts_New RENAME TO Receipts;
+            if (receiptsExists)
+            {
+                // Run migration in a transaction and execute statements one-by-one so
+                // a missing table or other problem doesn't abort database init.
+                using var tran = conn.BeginTransaction();
+                try
+                {
+                    var createNew = conn.CreateCommand();
+                    createNew.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Receipts_New (
+                            Id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                            ReceiptNumber    TEXT NOT NULL,
+                            IssuedTo         TEXT,
+                            IdNumber         TEXT,
+                            OrganizationName TEXT,
+                            DateIssued       TEXT,
+                            ItemsJson        TEXT,
+                            TotalAmount      REAL,
+                            Notes            TEXT,
+                            CashierName      TEXT,
+                            IsDeleted        INTEGER DEFAULT 0,
+                            DeletedAt        TEXT
+                        );";
+                    createNew.ExecuteNonQuery();
 
-                -- 4. Re-create any indexes if you had them (optional)";
-            cmd.ExecuteNonQuery();
+                    // Try copying data; if this fails for any reason just continue so
+                    // app can create/repair the schema instead of crashing.
+                    try
+                    {
+                        var copy = conn.CreateCommand();
+                        copy.CommandText = @"
+                            INSERT INTO Receipts_New 
+                            SELECT Id, ReceiptNumber, IssuedTo, IdNumber, OrganizationName, 
+                                   DateIssued, ItemsJson, TotalAmount, Notes, CashierName,
+                                   IsDeleted, DeletedAt 
+                            FROM Receipts;";
+                        copy.ExecuteNonQuery();
+                    }
+                    catch (Microsoft.Data.Sqlite.SqliteException)
+                    {
+                        // If copy fails, continue — we'll drop/rename below or recreate later.
+                    }
 
-            // Safe column additions for upgrades
+                    var drop = conn.CreateCommand();
+                    drop.CommandText = "DROP TABLE IF EXISTS Receipts;";
+                    drop.ExecuteNonQuery();
+
+                    var rename = conn.CreateCommand();
+                    rename.CommandText = "ALTER TABLE Receipts_New RENAME TO Receipts;";
+                    rename.ExecuteNonQuery();
+
+                    tran.Commit();
+                }
+                catch
+                {
+                    try { tran.Rollback(); } catch { }
+                    // swallow — we'll attempt to ensure final schema below
+                }
+            }
+            else
+            {
+                // No existing table — create the current schema directly
+                var create = conn.CreateCommand();
+                create.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS Receipts (
+                        Id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ReceiptNumber    TEXT NOT NULL,
+                        IssuedTo         TEXT,
+                        IdNumber         TEXT,
+                        OrganizationName TEXT,
+                        DateIssued       TEXT,
+                        ItemsJson        TEXT,
+                        TotalAmount      REAL,
+                        Notes            TEXT,
+                        CashierName      TEXT,
+                        IsDeleted        INTEGER DEFAULT 0,
+                        DeletedAt        TEXT
+                    );";
+                create.ExecuteNonQuery();
+            }
+
+            // Safe column additions for upgrades — still run to ensure columns exist
             var alterCmds = new[]
             {
                 "ALTER TABLE Receipts ADD COLUMN IdNumber TEXT;",

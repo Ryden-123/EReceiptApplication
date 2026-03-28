@@ -33,13 +33,15 @@
                            Margin="0,0,0,10"/>
 
                 <!-- Step description -->
-                <TextBlock x:Name="TxtStepDesc"
-                           FontSize="13" TextWrapping="Wrap"
-                           Foreground="{DynamicResource AppTextMuted}"
-                           HorizontalAlignment="Center"
-                           TextAlignment="Center"
-                           LineHeight="22"
-                           Margin="0,0,0,28"/>
+				<!-- Replace with -->
+				<TextBlock x:Name="TxtStepDesc"
+						   FontSize="13" TextWrapping="Wrap"
+						   Foreground="{DynamicResource AppTextMuted}"
+						   HorizontalAlignment="Stretch"
+						   TextAlignment="Center"
+						   LineHeight="24"
+						   MaxWidth="360"
+						   Margin="0,0,0,28"/>
 
                 <!-- Progress dots -->
                 <StackPanel Orientation="Horizontal"

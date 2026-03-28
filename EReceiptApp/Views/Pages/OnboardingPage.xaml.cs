@@ -16,42 +16,41 @@ namespace EReceiptApp.Views.Pages
             (
                 "👋",
                 "Welcome to E-Receipt System!",
-                "This app lets you create, manage, and share " +
-                "digital receipts quickly and easily. " +
-                "This short tutorial will walk you through " +
-                "the key features in just a minute."
+                "Create and share digital receipts in seconds. " +
+                "This quick tutorial covers the 4 key things " +
+                "you need to know to get started."
             ),
             (
                 "🧾",
                 "Creating a receipt",
-                "Click New Receipt in the sidebar to open " +
-                "the receipt form. Fill in who it's issued to, " +
-                "add your items with prices, and click " +
-                "Preview Receipt when done."
+                "Click New Receipt in the sidebar. " +
+                "Fill in who it is issued to, " +
+                "add your items and prices, " +
+                "then click Preview Receipt when done."
             ),
             (
                 "📱",
                 "Sharing with a QR code",
-                "Every receipt gets a QR code automatically. " +
-                "The recipient can scan it with their phone " +
-                "camera to save the receipt details. " +
-                "You can also export it as a PDF or image."
+                "Every receipt gets a QR code. " +
+                "The recipient scans it with their phone " +
+                "to save the details. " +
+                "You can also export as PDF or image."
             ),
             (
                 "📋",
-                "Managing receipts",
+                "Managing your receipts",
                 "All receipts are saved automatically. " +
-                "Go to View All Receipts to search, " +
-                "filter, edit, or duplicate any receipt. " +
+                "Use View All Receipts to search, edit, " +
+                "or duplicate any receipt. " +
                 "Deleted receipts go to the Trash first."
             ),
             (
                 "✅",
                 "You are all set!",
-                "That covers the basics. Explore the " +
-                "Dashboard for stats, Settings to customize " +
-                "your theme and upload your logo, and " +
-                "Verify Receipt to confirm any receipt is authentic."
+                "Explore the Dashboard for stats, " +
+                "Settings to upload your logo and set your theme, " +
+                "and Verify Receipt to confirm any receipt is authentic. " +
+                "Enjoy the app!"
             )
         };
 
