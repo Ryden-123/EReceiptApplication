@@ -158,5 +158,11 @@ namespace EReceiptApp
             MainFrame.Navigate(
                 new Views.Pages.ReceiptBuilderPage());
         }
+
+        private void ManageItems_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(
+                new Views.Pages.ManageItemsPage());
+        }
     }
 }

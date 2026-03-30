@@ -133,72 +133,186 @@ namespace EReceiptApp.Services
         {
             var check = conn.CreateCommand();
             check.CommandText = @"
-                CREATE TABLE IF NOT EXISTS PresetItems (
-                    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Name        TEXT NOT NULL,
-                    DefaultPrice REAL DEFAULT 0
-                );";
+        CREATE TABLE IF NOT EXISTS PresetItems (
+            Id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name         TEXT NOT NULL,
+            DefaultPrice REAL DEFAULT 0,
+            Category     TEXT DEFAULT '',
+            Description  TEXT DEFAULT ''
+        );";
             check.ExecuteNonQuery();
+
+            // Safely add new columns if upgrading
+            var alterCmds = new[]
+            {
+        "ALTER TABLE PresetItems ADD COLUMN Category TEXT DEFAULT '';",
+        "ALTER TABLE PresetItems ADD COLUMN Description TEXT DEFAULT '';"
+    };
+            foreach (var sql in alterCmds)
+            {
+                try
+                {
+                    var a = conn.CreateCommand();
+                    a.CommandText = sql;
+                    a.ExecuteNonQuery();
+                }
+                catch { }
+            }
 
             var count = conn.CreateCommand();
             count.CommandText = "SELECT COUNT(*) FROM PresetItems";
             long existing = (long)(count.ExecuteScalar() ?? 0L);
             if (existing > 0) return;
 
-            // Demo preset items
+            // Demo preset items with categories
             var items = new[]
             {
-                ("Membership Fee",      150.00),
-                ("Registration Fee",    200.00),
-                ("T-Shirt",             250.00),
-                ("ID Lace",              50.00),
-                ("Event Ticket",        100.00),
-                ("Chocolate Chips",      85.00),
-                ("Stick-O",              20.00),
-                ("Bottled Water",        25.00),
-                ("Rice Meal",            60.00),
-                ("Yearbook",            350.00)
-            };
+        ("Membership Fee",    150.00, "Fees",
+            "Annual membership fee"),
+        ("Registration Fee",  200.00, "Fees",
+            "Event or club registration fee"),
+        ("T-Shirt",           250.00, "Merchandise",
+            "Organization t-shirt"),
+        ("ID Lace",            50.00, "Merchandise",
+            "Branded ID lace"),
+        ("Event Ticket",      100.00, "Fees",
+            "General admission ticket"),
+        ("Chocolate Chips",    85.00, "Food",
+            "Pack of chocolate chip cookies"),
+        ("Stick-O",            20.00, "Food",
+            "Stick-O wafer sticks"),
+        ("Bottled Water",      25.00, "Food",
+            "500ml bottled water"),
+        ("Rice Meal",          60.00, "Food",
+            "Standard rice meal"),
+        ("Yearbook",          350.00, "Merchandise",
+            "Annual school yearbook")
+    };
 
-            foreach (var (name, price) in items)
+            foreach (var (name, price, cat, desc) in items)
             {
                 var ins = conn.CreateCommand();
-                ins.CommandText =
-                    "INSERT INTO PresetItems (Name, DefaultPrice) " +
-                    "VALUES ($n, $p)";
+                ins.CommandText = @"
+            INSERT INTO PresetItems
+            (Name, DefaultPrice, Category, Description)
+            VALUES ($n, $p, $c, $d)";
                 ins.Parameters.AddWithValue("$n", name);
                 ins.Parameters.AddWithValue("$p", price);
+                ins.Parameters.AddWithValue("$c", cat);
+                ins.Parameters.AddWithValue("$d", desc);
                 ins.ExecuteNonQuery();
             }
         }
 
-        public List<(string Name, double Price)> GetPresetItems()
+        // Full preset item model
+        public class PresetItem
         {
-            var list = new List<(string, double)>();
+            public int Id { get; set; }
+            public string Name { get; set; } = "";
+            public double DefaultPrice { get; set; }
+            public string Category { get; set; } = "";
+            public string Description { get; set; } = "";
+        }
+
+        public List<PresetItem> GetPresetItems()
+        {
+            var list = new List<PresetItem>();
             using var conn = new SqliteConnection(_connectionString);
             conn.Open();
             var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                "SELECT Name, DefaultPrice FROM PresetItems " +
-                "ORDER BY Name ASC";
+            cmd.CommandText = @"
+        SELECT Id, Name, DefaultPrice, Category, Description
+        FROM PresetItems
+        ORDER BY Category ASC, Name ASC";
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
-                list.Add((reader.GetString(0),
-                          reader.GetDouble(1)));
+            {
+                list.Add(new PresetItem
+                {
+                    Id = reader.GetInt32(0),
+                    Name = SafeGetString(reader, 1),
+                    DefaultPrice = reader.GetDouble(2),
+                    Category = SafeGetString(reader, 3),
+                    Description = SafeGetString(reader, 4)
+                });
+            }
             return list;
         }
 
-        public void AddPresetItem(string name, double price)
+        public List<string> GetPresetCategories()
+        {
+            var list = new List<string>();
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+        SELECT DISTINCT Category FROM PresetItems
+        WHERE Category != ''
+        ORDER BY Category ASC";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                list.Add(reader.GetString(0));
+            return list;
+        }
+
+        public void AddPresetItem(PresetItem item)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+        INSERT INTO PresetItems
+        (Name, DefaultPrice, Category, Description)
+        VALUES ($n, $p, $c, $d)";
+            cmd.Parameters.AddWithValue("$n", item.Name);
+            cmd.Parameters.AddWithValue("$p", item.DefaultPrice);
+            cmd.Parameters.AddWithValue("$c", item.Category ?? "");
+            cmd.Parameters.AddWithValue("$d", item.Description ?? "");
+            cmd.ExecuteNonQuery();
+        }
+
+        public void UpdatePresetItem(PresetItem item)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+        UPDATE PresetItems SET
+            Name         = $n,
+            DefaultPrice = $p,
+            Category     = $c,
+            Description  = $d
+        WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$n", item.Name);
+            cmd.Parameters.AddWithValue("$p", item.DefaultPrice);
+            cmd.Parameters.AddWithValue("$c", item.Category ?? "");
+            cmd.Parameters.AddWithValue("$d", item.Description ?? "");
+            cmd.Parameters.AddWithValue("$id", item.Id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void DeletePresetItem(int id)
         {
             using var conn = new SqliteConnection(_connectionString);
             conn.Open();
             var cmd = conn.CreateCommand();
             cmd.CommandText =
-                "INSERT INTO PresetItems (Name, DefaultPrice) " +
-                "VALUES ($n, $p)";
-            cmd.Parameters.AddWithValue("$n", name);
-            cmd.Parameters.AddWithValue("$p", price);
+                "DELETE FROM PresetItems WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$id", id);
             cmd.ExecuteNonQuery();
+        }
+
+        public bool PresetItemNameExists(string name, int excludeId = 0)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+        SELECT COUNT(*) FROM PresetItems
+        WHERE Name = $name AND Id != $id";
+            cmd.Parameters.AddWithValue("$name", name);
+            cmd.Parameters.AddWithValue("$id", excludeId);
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
         // ── Save / Update ─────────────────────────────────────────────
@@ -472,6 +586,11 @@ namespace EReceiptApp.Services
         }
 
         // ── Helpers ───────────────────────────────────────────────────
+
+        private string SafeGetString(SqliteDataReader reader, int ordinal)
+        {
+            return !reader.IsDBNull(ordinal) ? reader.GetString(ordinal) : "";
+        }
         private List<Receipt> QueryReceipts(string sql)
         {
             var list = new List<Receipt>();
@@ -537,4 +656,6 @@ namespace EReceiptApp.Services
             return receipt;
         }
     }
+
+
 }

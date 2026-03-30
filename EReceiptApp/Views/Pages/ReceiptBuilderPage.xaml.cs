@@ -19,6 +19,8 @@ namespace EReceiptApp.Views.Pages
             new List<(TextBox, TextBox, TextBox)>();
 
         private readonly DatabaseService _db = new DatabaseService();
+        private System.Windows.Threading.DispatcherTimer? _typingTimer;
+        private bool _isTyping = false;
 
         // ── New receipt ───────────────────────────────────────────────
         public ReceiptBuilderPage()
@@ -83,6 +85,18 @@ namespace EReceiptApp.Views.Pages
                 // Number will be generated on submit
                 TxtReceiptNumber.Text = "(generated on submit)";
             }
+
+            // Init typing timer
+            InitTypingTimer();
+
+            // Wire TextChanged on required fields
+            TxtIssuedTo.TextChanged += OnFieldChanged;
+            TxtCashier.TextChanged += OnFieldChanged;
+
+            // Initial button state
+            UpdatePreviewButton();
+
+            Unloaded += (s, e) => _typingTimer?.Stop();
         }
 
         // ── Auto-fill from last used ──────────────────────────────────
@@ -266,45 +280,75 @@ namespace EReceiptApp.Views.Pages
             }
             TxtSubtotal.Text = $"₱{sub:F2}";
             TxtTotal.Text = $"₱{sub:F2}";
+
+            // Update button when items change
+            UpdatePreviewButton();
         }
 
         // ── Preset items picker ───────────────────────────────────────
         private void PickPreset_Click(object sender, RoutedEventArgs e)
         {
             var presets = _db.GetPresetItems();
+
             if (presets.Count == 0)
             {
                 MessageBox.Show(
-                    "No preset items found in the database.",
+                    "No preset items found.\n\n" +
+                    "Go to Manage Items in the sidebar to add some.",
                     "No Presets",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
                 return;
             }
 
-            // Build a popup menu
-            var menu = new ContextMenu();
+            var menu = new System.Windows.Controls.ContextMenu();
 
-            foreach (var (name, price) in presets)
+            // Group by category
+            var grouped = presets
+                .GroupBy(p => string.IsNullOrWhiteSpace(p.Category)
+                    ? "Other" : p.Category)
+                .OrderBy(g => g.Key);
+
+            foreach (var group in grouped)
             {
-                var item = new MenuItem
+                // Category header (not clickable)
+                var header = new MenuItem
                 {
-                    Header = $"{name}  —  ₱{price:F2}"
+                    Header = group.Key.ToUpper(),
+                    IsEnabled = false,
+                    FontWeight = FontWeights.Bold,
+                    Foreground = (SolidColorBrush)Application.Current
+                                     .Resources["AppTextMuted"]
                 };
-                string capturedName = name;
-                double capturedPrice = price;
+                menu.Items.Add(header);
 
-                item.Click += (s, ev) =>
+                // Items in this category
+                foreach (var preset in group)
                 {
-                    AddItemRow(capturedName, "1",
-                        capturedPrice.ToString("F2"));
-                };
+                    string displayName = preset.Name;
+                    double displayPrice = preset.DefaultPrice;
+                    string desc = string.IsNullOrWhiteSpace(
+                        preset.Description)
+                        ? "" : $" — {preset.Description}";
 
-                menu.Items.Add(item);
+                    var item = new MenuItem
+                    {
+                        Header = $"{displayName}  ₱{displayPrice:F2}{desc}"
+                    };
+
+                    item.Click += (s, ev) =>
+                        AddItemRow(displayName, "1",
+                            displayPrice.ToString("F2"));
+
+                    menu.Items.Add(item);
+                }
+
+                menu.Items.Add(new Separator());
             }
 
             menu.PlacementTarget = sender as UIElement;
-            menu.Placement = PlacementMode.Bottom;
+            menu.Placement =
+                System.Windows.Controls.Primitives.PlacementMode.Bottom;
             menu.IsOpen = true;
         }
 
@@ -504,6 +548,48 @@ namespace EReceiptApp.Views.Pages
                 Notes = TxtNotes.Text.Trim(),
                 CashierName = TxtCashier.Text.Trim()
             };
+        }
+
+        // ── Typing timer setup ────────────────────────────────────────────
+        private void InitTypingTimer()
+        {
+            _typingTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(800)
+            };
+            _typingTimer.Tick += TypingTimer_Tick;
+        }
+
+        private void TypingTimer_Tick(object? sender, EventArgs e)
+        {
+            _typingTimer?.Stop();
+            _isTyping = false;
+            UpdatePreviewButton();
+        }
+
+        // Called whenever any key is pressed in a field
+        private void OnFieldChanged(object sender,
+            System.Windows.Controls.TextChangedEventArgs e)
+        {
+            _isTyping = true;
+            UpdatePreviewButton();
+            _typingTimer?.Stop();
+            _typingTimer?.Start();
+        }
+
+        // Enable/disable preview button based on required fields
+        private void UpdatePreviewButton()
+        {
+            bool requiredFilled =
+                !string.IsNullOrWhiteSpace(TxtIssuedTo.Text) &&
+                !string.IsNullOrWhiteSpace(TxtCashier.Text) &&
+                _itemRows.Count > 0;
+
+            // Disable if still typing OR required fields not filled
+            BtnPreview.IsEnabled = !_isTyping && requiredFilled;
+
+            // Update button appearance
+            BtnPreview.Opacity = BtnPreview.IsEnabled ? 1.0 : 0.5;
         }
     }
 }

@@ -83,6 +83,14 @@
                             </Button.ToolTip>
                         </Button>
 
+                        <Button Content="📦  Manage Items"
+                            Style="{StaticResource SidebarButton}"
+                            Click="ManageItems_Click">
+                            <Button.ToolTip>
+                                <ToolTip Content="Add and manage preset items"/>
+                            </Button.ToolTip>
+                        </Button>
+
                         <Separator Background="#3D3460"
                                    Margin="8,6"/>
 

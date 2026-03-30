@@ -181,10 +181,13 @@
                             Padding="14,8" FontSize="12"
                             Margin="0,0,10,0"
                             Click="ClearForm_Click"/>
-                    <Button Content="Preview Receipt →"
-                            Style="{StaticResource PrimaryButton}"
-                            Padding="14,8" FontSize="12"
-                            Click="PreviewReceipt_Click"/>
+                    <Button x:Name="BtnPreview"
+                        Content="Preview Receipt →"
+                        Style="{StaticResource PrimaryButton}"
+                        Padding="14,8" FontSize="12"
+                        IsEnabled="False"
+                        Opacity="0.5"
+                        Click="PreviewReceipt_Click"/>
                 </StackPanel>
 
                 <!-- Validation -->
