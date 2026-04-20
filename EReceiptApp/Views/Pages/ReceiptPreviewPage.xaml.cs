@@ -69,7 +69,7 @@ namespace EReceiptApp.Views.Pages
             // Header — show org name if filled, otherwise app name
             TxtOrgName.Text = string.IsNullOrWhiteSpace(
                 _receipt.OrganizationName)
-                ? "E-Receipt System"
+                ? "E-bidensya v1.0"
                 : _receipt.OrganizationName;
 
             // Hide type badge — no types anymore
@@ -356,7 +356,7 @@ namespace EReceiptApp.Views.Pages
                 10, false, TextAlignment.Center,
                 Color.FromRgb(150, 150, 165), 0, 2));
             stack.Children.Add(MakeExportText(
-                "E-Receipt System v1.0",
+                "E-Bidensya v1.0",
                 10, false, TextAlignment.Center,
                 Color.FromRgb(150, 150, 165), 0, 0));
 

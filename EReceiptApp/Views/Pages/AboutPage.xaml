@@ -12,7 +12,7 @@
                        FontSize="24" FontWeight="Bold"
                        Foreground="{DynamicResource AppText}"
                        Margin="0,0,0,4"/>
-            <TextBlock Text="E-Receipt System v1.0"
+            <TextBlock Text="E-bidensya v1.0"
                        FontSize="13"
                        Foreground="{DynamicResource AppTextMuted}"
                        Margin="0,0,0,32"/>
@@ -30,11 +30,11 @@
                     <TextBlock TextWrapping="Wrap" FontSize="13"
                                Foreground="{DynamicResource AppText}"
                                Margin="0,0,0,10">
-                        The E-Receipt System is a digital receipt
-                        generator designed for stores, organizations,
-                        and clubs. It allows cashiers and officers to
-                        issue official digital receipts without the
-                        need for paper.
+                        E-Bidensya (from the Filipino word "ebidensya" meaning
+                        evidence or proof) is a digital receipt generator
+                        designed for stores, organizations, and clubs. It allows
+                        cashiers and officers to issue official digital receipts
+                        without the need for paper.
                     </TextBlock>
                     <TextBlock TextWrapping="Wrap" FontSize="13"
                                Foreground="{DynamicResource AppText}">

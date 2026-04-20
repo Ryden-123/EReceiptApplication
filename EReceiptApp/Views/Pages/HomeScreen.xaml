@@ -21,36 +21,32 @@
                     VerticalAlignment="Center">
 
 			<!-- Logo -->
-			<Border Width="88" Height="88"
-                    CornerRadius="22"
-                    HorizontalAlignment="Center"
-                    Margin="0,0,0,20">
-				<Border.Background>
-					<LinearGradientBrush StartPoint="0,0"
-                                         EndPoint="1,1">
-						<GradientStop Color="#7C6FCD" Offset="0"/>
-						<GradientStop Color="#9B6CD4" Offset="1"/>
-					</LinearGradientBrush>
-				</Border.Background>
-				<TextBlock Text="🧾" FontSize="40"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
-			</Border>
+            <!-- Replace with -->
+            <Border Width="110" Height="110"
+        CornerRadius="24"
+        Background="#1A0000"
+        HorizontalAlignment="Center"
+        Margin="0,0,0,20">
+                <Image Source="/Assets/logo.png"
+           Width="95" Height="95"
+           Stretch="Uniform"
+           HorizontalAlignment="Center"
+           VerticalAlignment="Center"/>
+            </Border>
 
-			<!-- Title -->
-			<TextBlock Text="E-Receipt System"
-                       FontSize="32" FontWeight="Bold"
-                       Foreground="{DynamicResource AppText}"
-                       HorizontalAlignment="Center"
-                       Margin="0,0,0,6"/>
+            <TextBlock Text="E-Bidensya"
+           FontSize="36" FontWeight="Bold"
+           Foreground="{DynamicResource AppText}"
+           HorizontalAlignment="Center"
+           Margin="0,0,0,6"/>
 
-			<TextBlock Text="Digital receipts for your organization"
-                       FontSize="14"
-                       Foreground="{DynamicResource AppTextMuted}"
-                       HorizontalAlignment="Center"
-                       Margin="0,0,0,48"/>
+            <TextBlock Text="Your digital receipt companion"
+           FontSize="14"
+           Foreground="{DynamicResource AppTextMuted}"
+           HorizontalAlignment="Center"
+           Margin="0,0,0,48"/>
 
-			<!-- Cards row -->
+            <!-- Cards row -->
 			<StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Center">
 
@@ -138,7 +134,7 @@
 			</StackPanel>
 
 			<!-- Version -->
-			<TextBlock Text="E-Receipt System v1.0"
+            <TextBlock Text="E-Bidensya v1.0"
                        FontSize="11"
                        Foreground="{DynamicResource AppTextMuted}"
                        HorizontalAlignment="Center"

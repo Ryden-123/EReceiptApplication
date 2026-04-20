@@ -260,19 +260,19 @@
 							   TextWrapping="NoWrap" Margin="0,16" Opacity="0.8"/>
 
 					<!-- Footer -->
-					<TextBlock Text="This is an official digital receipt."
-							   FontSize="10"
-							   Foreground="{DynamicResource AppTextMuted}"
-							   HorizontalAlignment="Center"
-							   TextAlignment="Center"/>
-					<TextBlock Text="E-Receipt System v1.0"
-							   FontSize="10"
-							   Foreground="{DynamicResource AppTextMuted}"
-							   HorizontalAlignment="Center"
-							   TextAlignment="Center"
-							   Margin="0,2,0,0"/>
+                    <TextBlock Text="This is an official digital receipt."
+           FontSize="10"
+           Foreground="{DynamicResource AppTextMuted}"
+           HorizontalAlignment="Center"
+           TextAlignment="Center"/>
+                    <TextBlock Text="E-Bidensya v1.0"
+           FontSize="10"
+           Foreground="{DynamicResource AppTextMuted}"
+           HorizontalAlignment="Center"
+           TextAlignment="Center"
+           Margin="0,2,0,0"/>
 
-				</StackPanel>
+                </StackPanel>
 			</Border>
 
 			<!-- ===== RIGHT: QR + Actions ===== -->

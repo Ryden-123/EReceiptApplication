@@ -15,7 +15,7 @@ namespace EReceiptApp.Services
         public EmailService(
             string senderEmail,
             string appPassword,
-            string senderName = "E-Receipt System")
+            string senderName = "E-bidensya")
         {
             _senderEmail = senderEmail;
             _appPassword = appPassword;
@@ -72,7 +72,7 @@ namespace EReceiptApp.Services
             return $@"
             <div style='font-family: Arial, sans-serif; max-width: 500px;
                         margin: 0 auto; padding: 24px;'>
-                <h2 style='color: #5C4ABB;'>E-Receipt System</h2>
+                <h2 style='color: #5C4ABB;'>E-bidensya</h2>
                 <p>Hi <strong>{toName}</strong>,</p>
                 <p>Please find your receipt <strong>{receiptNumber}</strong>
                    attached to this email.</p>
@@ -83,7 +83,7 @@ namespace EReceiptApp.Services
                 <hr style='border: none; border-top: 1px solid #eee;
                             margin: 24px 0;'/>
                 <p style='color: #999; font-size: 12px;'>
-                    This is an automated email from E-Receipt System v1.0.
+                    This is an automated email from E-Bidensya v1.0.
                     Please do not reply to this email.
                 </p>
             </div>";
@@ -96,7 +96,7 @@ namespace EReceiptApp.Services
                    $"attached to this email.\n\n" +
                    $"The receipt is attached as both a PNG image " +
                    $"and a PDF document.\n\n" +
-                   $"E-Receipt System v1.0";
+                   $"E-bidensya v1.0";
         }
     }
 }

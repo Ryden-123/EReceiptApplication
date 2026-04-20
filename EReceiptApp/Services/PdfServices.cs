@@ -106,8 +106,8 @@ namespace EReceiptApp.Services
             double imgWidthPx, double imgHeightPx)
         {
             var document = new PdfSharp.Pdf.PdfDocument();
-            document.Info.Title = "E-Receipt";
-            document.Info.Author = "E-Receipt System";
+            document.Info.Title = "E-bidensya";
+            document.Info.Author = "E-bidensya v1.0";
 
             var page = document.AddPage();
 
@@ -149,7 +149,7 @@ namespace EReceiptApp.Services
             // Header
             stack.Children.Add(MakeText(
                 string.IsNullOrWhiteSpace(receipt.OrganizationName)
-                    ? "E-Receipt System"
+                    ? "E-bidensya v1.0"
                     : receipt.OrganizationName,
                 18, true, TextAlignment.Center,
                 Colors.Black, 0, 4));
@@ -206,9 +206,9 @@ namespace EReceiptApp.Services
                 10, false, TextAlignment.Center,
                 Color.FromRgb(150, 150, 165), 0, 2));
             stack.Children.Add(MakeText(
-                "E-Receipt System v1.0",
-                10, false, TextAlignment.Center,
-                Color.FromRgb(150, 150, 165), 0, 0));
+    "E-Bidensya v1.0",
+    10, false, TextAlignment.Center,
+    Color.FromRgb(150, 150, 165), 0, 0));
 
             card.Child = stack;
             return card;

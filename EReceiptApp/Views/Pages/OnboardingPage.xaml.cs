@@ -14,11 +14,12 @@ namespace EReceiptApp.Views.Pages
             _steps = new[]
         {
             (
-                "👋",
-                "Welcome to E-Receipt System!",
-                "Create and share digital receipts in seconds. " +
-                "This quick tutorial covers the 4 key things " +
-                "you need to know to get started."
+                 "👋",
+                "Welcome to E-Bidensya!",
+                "E-Bidensya helps you create, manage, and share " +
+                "digital receipts quickly and easily. " +
+                "This short tutorial will walk you through " +
+                "the key features in just a minute."
             ),
             (
                 "🧾",

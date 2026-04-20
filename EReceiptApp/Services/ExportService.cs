@@ -109,7 +109,7 @@ namespace EReceiptApp.Services
             // ── Sheet 2: Summary ──────────────────────────────────────
             var summary = workbook.Worksheets.Add("Summary");
 
-            summary.Cell(1, 1).Value = "E-Receipt System — Export Summary";
+            summary.Cell(1, 1).Value = "E-bidensya — Export Summary";
             summary.Cell(1, 1).Style.Font.Bold = true;
             summary.Cell(1, 1).Style.Font.FontSize = 14;
 
@@ -122,7 +122,7 @@ namespace EReceiptApp.Services
             summary.Cell(4, 1).Style.Font.Bold = true;
             summary.Cell(4, 2).Style.Font.Bold = true;
 
-            // Replace with — no types anymore, just show total
+            
             int std = receipts.Count;
             int mem = 0;
             decimal total = 0;
