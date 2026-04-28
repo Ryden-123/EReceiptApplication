@@ -74,8 +74,9 @@ namespace EReceiptApp.Views.Pages
             StatMembership.Text = $"₱{avg:F0}";
             StatMembershipAmt.Text = "average receipt";
 
-            StatMembership.Text = "—";
-            StatMembershipAmt.Text = "No longer used";
+            // Removed to show actual value
+            // StatMembership.Text = "—"; --Removed 
+            // StatMembershipAmt.Text = "No longer used"; --Removed
 
             // All time
             StatAllTime.Text =

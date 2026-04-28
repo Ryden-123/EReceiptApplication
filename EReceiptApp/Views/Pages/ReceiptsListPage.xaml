@@ -98,13 +98,13 @@
                         <TextBlock x:Name="StatStandard" Text="0"
                                FontSize="22" FontWeight="Bold"
                                Foreground="#2E7D32"/>
-                        <TextBlock Text="Standard" FontSize="11"
+                        <TextBlock Text="Today" FontSize="11"
                                Foreground="{DynamicResource AppTextMuted}"
                                Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="4"
+                <Border Grid.Column="4" Visibility="Collapsed"
                     Background="{DynamicResource AppSurface}"
                     BorderBrush="{DynamicResource AppBorder}"
                     BorderThickness="1" CornerRadius="8"

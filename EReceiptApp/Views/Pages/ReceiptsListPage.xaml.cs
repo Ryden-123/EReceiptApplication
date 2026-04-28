@@ -59,10 +59,14 @@ namespace EReceiptApp.Views.Pages
         private void UpdateStats()
         {
             StatTotal.Text = _allReceipts.Count.ToString();
-            StatStandard.Text = _allReceipts.Count.ToString();
-            StatMembership.Text = "—";
-            StatAmount.Text =
-                $"₱{_allReceipts.Sum(r => r.TotalAmount):F2}";
+
+            // Show receipts issued TODAY instead of duplicating total
+            var today = DateTime.Today;
+            int todayCount = _allReceipts.Count(r => r.DateIssued.Date == today);
+            StatStandard.Text = todayCount.ToString();
+
+ 
+            StatAmount.Text = $"₱{_allReceipts.Sum(r => r.TotalAmount):F2}";
         }
 
         // ── Apply current filter + search ─────────────────────────────
